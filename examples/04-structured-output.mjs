@@ -1,4 +1,7 @@
 // 04-structured-output — JSON-Schema harness.structured() + auto-repair.
+//
+// Run (copy-paste; from the package root, with ANTHROPIC_API_KEY set):
+//   node examples/04-structured-output.mjs "Checkout was fast, but my confirmation email never arrived."
 import { createHarness } from './_shared.mjs';
 import { parseCommonArgs, requirePrompt, baseConfig, runExample } from './_shared.mjs';
 

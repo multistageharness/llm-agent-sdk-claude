@@ -1,4 +1,7 @@
 // 12-resume-session — resume/replay a stored conversation via options.resume.
+//
+// Run (copy-paste; from the package root, with ANTHROPIC_API_KEY set):
+//   node examples/12-resume-session.mjs "Start a short story about a lighthouse keeper."
 import { createHarness } from './_shared.mjs';
 import { parseCommonArgs, requirePrompt, baseConfig, runExample } from './_shared.mjs';
 

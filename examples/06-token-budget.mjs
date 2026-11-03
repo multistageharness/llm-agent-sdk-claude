@@ -1,4 +1,8 @@
 // 06-token-budget — token budget + preflight gate.
+//
+// Run (copy-paste; from the package root, with ANTHROPIC_API_KEY set):
+//   node examples/06-token-budget.mjs "Explain token budgets in two sentences."
+//   node examples/06-token-budget.mjs --token-budget 50000 --budget-warn 60 "Explain token budgets."
 import { createHarness } from './_shared.mjs';
 import { parseCommonArgs, requirePrompt, baseConfig, runExample, printResult } from './_shared.mjs';
 

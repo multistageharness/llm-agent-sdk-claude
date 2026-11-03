@@ -1,4 +1,7 @@
 // 05-tool-calling — registerTool() → in-process mcp__harness__* + the agentic loop.
+//
+// Run (copy-paste; from the package root, with ANTHROPIC_API_KEY set):
+//   node examples/05-tool-calling.mjs "What is the weather in Paris?"
 import { createHarness } from './_shared.mjs';
 import { parseCommonArgs, requirePrompt, baseConfig, runExample, printResult } from './_shared.mjs';
 

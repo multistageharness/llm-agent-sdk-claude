@@ -1,6 +1,9 @@
 // 14-llm-as-judge — score a candidate answer against a rubric with structured().
 //
 // *** demo-grade — requires a live, authenticated Claude Code runtime. ***
+//
+// Run (copy-paste; from the package root, with ANTHROPIC_API_KEY set):
+//   node examples/14-llm-as-judge.mjs "Paris is the capital of France and has about 2 million residents."
 import { createHarness } from './_shared.mjs';
 import { parseCommonArgs, requirePrompt, baseConfig, runExample } from './_shared.mjs';
 

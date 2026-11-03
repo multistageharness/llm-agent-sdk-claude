@@ -1,4 +1,8 @@
 // 01-chat — buffered harness.chat() + usage report.
+//
+// Run (copy-paste; from the package root, with ANTHROPIC_API_KEY set):
+//   node examples/01-chat.mjs "What is 2+2?"
+//   node examples/01-chat.mjs --model claude-haiku-4-5 --effort low "What is 2+2?"
 import { createHarness } from './_shared.mjs';
 import { parseCommonArgs, requirePrompt, baseConfig, runExample, printResult } from './_shared.mjs';
 

@@ -10,6 +10,9 @@ export ANTHROPIC_API_KEY=...          # or CLAUDE_CODE_USE_BEDROCK=1 / CLAUDE_CO
 node examples/01-chat.mjs "What is 2+2?"
 ```
 
+Every example's header comment carries a `Run (copy-paste)` block with ready-to-run commands
+(concrete prompts, plus flag/env variants where relevant) — open the file and paste.
+
 Each example resolves the Claude Code CLI the Agent SDK spawns; install
 `@anthropic-ai/claude-agent-sdk` (or set `CLAUDE_AGENT_EXECUTABLE` / `pathToClaudeCodeExecutable`).
 With no message argument an example prints a usage hint and exits `2` **before** any run — nothing

@@ -1,4 +1,7 @@
 // 07-session-persistence — persist exchanges to the context store, then show the file.
+//
+// Run (copy-paste; from the package root, with ANTHROPIC_API_KEY set):
+//   node examples/07-session-persistence.mjs "Remember this: my favorite color is teal."
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';

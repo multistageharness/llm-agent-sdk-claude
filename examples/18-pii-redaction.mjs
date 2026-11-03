@@ -2,6 +2,9 @@
 // Redaction happens where it is guaranteed to apply: on the prompt before
 // chat(), and inside the tool handler (defense in depth). beforeRun /
 // beforeToolCall act as verification gates that veto anything still unredacted.
+//
+// Run (copy-paste; from the package root, with ANTHROPIC_API_KEY set):
+//   node examples/18-pii-redaction.mjs "Email jane.doe@example.com from 10.0.0.5: the SSN 123-45-6789 ticket is resolved."
 import { createHarness } from './_shared.mjs';
 import { parseCommonArgs, requirePrompt, baseConfig, runExample, printResult } from './_shared.mjs';
 

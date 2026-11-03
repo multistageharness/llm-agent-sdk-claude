@@ -1,5 +1,8 @@
 // 06b-token-budget-exceeded — a run that trips budget:exceeded and throws
 // TokenBudgetExceededError under enforcement: 'block'.
+//
+// Run (copy-paste; from the package root, with ANTHROPIC_API_KEY set):
+//   node examples/06b-token-budget-exceeded.mjs "Explain the harness architecture."
 import { createHarness, TokenBudgetExceededError } from './_shared.mjs';
 import { parseCommonArgs, requirePrompt, baseConfig, runExample, printResult } from './_shared.mjs';
 

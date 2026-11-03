@@ -1,5 +1,8 @@
 // 16-streaming-with-tools — stream() with a registered tool; partial assistant
 // deltas interleave with mcp__harness__* tool turns.
+//
+// Run (copy-paste; from the package root, with ANTHROPIC_API_KEY set):
+//   node examples/16-streaming-with-tools.mjs "What time is it in Tokyo?"
 import { createHarness } from './_shared.mjs';
 import { parseCommonArgs, requirePrompt, baseConfig, runExample, printDelta } from './_shared.mjs';
 

@@ -1,6 +1,9 @@
 // 17-human-in-the-loop — human approval via a beforeToolCall veto. The hook
 // approves an allowlist of read-only tools and denies everything else; the
 // runtime records the denial in result.permission_denials and the tool never runs.
+//
+// Run (copy-paste; from the package root, with ANTHROPIC_API_KEY set):
+//   node examples/17-human-in-the-loop.mjs "Get the weather in Berlin, then write it to a file."
 import { createHarness } from './_shared.mjs';
 import { parseCommonArgs, requirePrompt, baseConfig, runExample, printResult } from './_shared.mjs';
 

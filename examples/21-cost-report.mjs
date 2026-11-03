@@ -1,5 +1,8 @@
 // 21-cost-report — cost / usage reporting from result.total_cost_usd (a client-side
 // estimate, not authoritative billing) and per-model modelUsage.
+//
+// Run (copy-paste; from the package root, with ANTHROPIC_API_KEY set):
+//   node examples/21-cost-report.mjs "What is 2+2?"
 import { createHarness } from './_shared.mjs';
 import { parseCommonArgs, requirePrompt, baseConfig, runExample } from './_shared.mjs';
 

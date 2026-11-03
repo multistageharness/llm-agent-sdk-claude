@@ -7,9 +7,13 @@
  * mapped harness options — with a `queryImpl` seam so the whole test suite runs
  * offline against a mock stream, never a real subprocess.
  *
- * The module-resolution helpers are adapted from the Copilot harness
- * (`github-sdk/v300/src/cli-path.mjs`), retargeted to `@anthropic-ai/claude-agent-sdk`
- * (the CLI ships inside the SDK package).
+ * The module-resolution helpers embed the finder cores of the
+ * `find-claude-node-module-directory-path` and
+ * `find-copilot-node-module-directory-path` repos directly in this source —
+ * `findClaude()` / `findCopilot()` share one `findModule()` core, no external
+ * dependency. Each candidate package is located two ways: native Node module
+ * resolution first, then a manual `node_modules` walk (which also finds
+ * CLI-only packages whose `exports` map blocks native resolution).
  */
 
 import fs from 'node:fs';
@@ -19,8 +23,32 @@ import { fileURLToPath } from 'node:url';
 
 import { buildQueryOptions } from './config.mjs';
 
-/** Candidate package names, most specific first. */
-export const DEFAULT_CANDIDATES = ['@anthropic-ai/claude-agent-sdk'];
+/**
+ * Candidate package names, first match wins. The CLI package itself is probed
+ * before the Agent SDK so a dedicated `@anthropic-ai/claude-code` install
+ * beats the SDK's vendored copy.
+ */
+export const DEFAULT_CANDIDATES = [
+  '@anthropic-ai/claude-code',
+  '@anthropic-ai/claude-agent-sdk',
+];
+
+/** Candidate package names for the Copilot twin (`findCopilot`). */
+export const COPILOT_DEFAULT_CANDIDATES = [
+  '@github/copilot',
+  '@github/copilot-sdk',
+  '@github/copilot-language-server',
+];
+
+/**
+ * Relative locations where a Claude Code CLI script is known to live inside a
+ * found package, probed after the manifest's bin targets:
+ *   - `cli.js` — the entry `@anthropic-ai/claude-code` declares as its `claude`
+ *     bin, and the file the Agent SDK's own `pathToClaudeCodeExecutable`
+ *     default points at inside `@anthropic-ai/claude-agent-sdk`;
+ *   - `vendor/claude-code/cli.js` — where some Agent SDK builds vendor the CLI.
+ */
+const CLI_RELATIVE_CANDIDATES = ['cli.js', path.join('vendor', 'claude-code', 'cli.js')];
 
 /**
  * Error codes meaning "Node produced no entry path" — package absent, or
@@ -134,21 +162,128 @@ export function findClosestModuleDir(moduleName, opts = {}) {
   }
 }
 
-/** Locate the installed SDK package root (native resolution, then manual walk). */
-function findSdkDir(fromDir) {
-  const hereDir = path.dirname(fileURLToPath(import.meta.url));
-  // an explicit fromDir is authoritative; otherwise search from this package, then cwd
-  const anchors = fromDir ? [fromDir] : [hereDir, process.cwd()];
-  for (const anchor of anchors) {
-    for (const name of DEFAULT_CANDIDATES) {
-      const entry = resolveModuleEntry(name, { fromDir: anchor });
-      const dir = entry
-        ? packageRootFromEntry(name, entry, { fromDir: anchor })
-        : findClosestModuleDir(name, { fromDir: anchor });
-      if (dir) return dir;
+/**
+ * Resolve the `.bin` dir of the node_modules that contains the found package,
+ * and map the package's declared bin names to their shim paths under it.
+ * @param {string} moduleName
+ * @param {string} dir package root
+ * @returns {{ binDir: string, bin: Record<string, string> }}
+ */
+export function resolveBinInfo(moduleName, dir) {
+  const segments = moduleName.split('/');
+  const nodeModulesDir = path.resolve(dir, ...segments.map(() => '..'));
+  const binDir = path.join(nodeModulesDir, '.bin');
+  const bin = {};
+  try {
+    const pkg = JSON.parse(fs.readFileSync(path.join(dir, 'package.json'), 'utf8'));
+    if (typeof pkg.bin === 'string') {
+      const name = segments[segments.length - 1];
+      bin[name] = path.join(binDir, name);
+    } else if (pkg.bin && typeof pkg.bin === 'object') {
+      for (const name of Object.keys(pkg.bin)) bin[name] = path.join(binDir, name);
+    }
+  } catch {
+    // no/unreadable manifest — leave bin empty
+  }
+  return { binDir, bin };
+}
+
+/**
+ * Resolve the actual Claude Code CLI script inside a found package — the value
+ * the Agent SDK's `pathToClaudeCodeExecutable` option (and the
+ * `CLAUDE_AGENT_EXECUTABLE` env var) expects. Probes, in order: the manifest's
+ * `claude` bin target, any other bin target, then the known vendored CLI
+ * locations. Returns an absolute file path or null — never a throw.
+ * @param {string} moduleName
+ * @param {string} dir package root
+ * @returns {string|null}
+ */
+export function resolveClaudeCodeExecutable(moduleName, dir) {
+  const rels = [];
+  try {
+    const pkg = JSON.parse(fs.readFileSync(path.join(dir, 'package.json'), 'utf8'));
+    if (typeof pkg.bin === 'string') rels.push(pkg.bin);
+    else if (pkg.bin && typeof pkg.bin === 'object') {
+      if (typeof pkg.bin.claude === 'string') rels.push(pkg.bin.claude);
+      for (const v of Object.values(pkg.bin)) {
+        if (typeof v === 'string') rels.push(v);
+      }
+    }
+  } catch {
+    // no/unreadable manifest — probe the known locations only
+  }
+  rels.push(...CLI_RELATIVE_CANDIDATES);
+  for (const rel of rels) {
+    const abs = path.join(dir, rel);
+    if (isFile(abs)) return abs;
+  }
+  return null;
+}
+
+/**
+ * Shared finder core: locate the closest installed package from `candidates`,
+ * trying native resolution first, then the manual node_modules walk — so both
+ * library packages and CLI-only packages (no `.` export) are found. Never
+ * throws for an installed-but-unexported package.
+ * @param {string[]} candidates package names, first match wins
+ * @param {{ fromDir?: string, strategy?: 'auto'|'native'|'manual' }} [opts]
+ * @returns {{ name: string, dir: string|null, entry: string|null, binDir: string|null,
+ *             bin: Record<string, string>, strategy: string, fromDir: string }|null}
+ */
+export function findModule(candidates, opts = {}) {
+  const fromDir = opts.fromDir || process.cwd();
+  const strategy = opts.strategy || 'auto';
+  for (const name of candidates) {
+    if (strategy === 'auto' || strategy === 'native') {
+      const entry = resolveModuleEntry(name, { fromDir });
+      if (entry) {
+        const dir = packageRootFromEntry(name, entry, { fromDir });
+        const { binDir, bin } = dir ? resolveBinInfo(name, dir) : { binDir: null, bin: {} };
+        return { name, dir, entry, binDir, bin, strategy: 'native', fromDir };
+      }
+    }
+    if (strategy === 'auto' || strategy === 'manual') {
+      const dir = findClosestModuleDir(name, { fromDir });
+      if (dir) {
+        const { binDir, bin } = resolveBinInfo(name, dir);
+        return { name, dir, entry: readManifestEntry(dir), binDir, bin, strategy: 'manual', fromDir };
+      }
     }
   }
   return null;
+}
+
+function normalizeCandidates(opts, defaults) {
+  if (!opts.candidates) return defaults;
+  return Array.isArray(opts.candidates) ? opts.candidates : [opts.candidates];
+}
+
+/**
+ * findClaude — locate the closest installed Claude package
+ * (`@anthropic-ai/claude-code`, then `@anthropic-ai/claude-agent-sdk`) and the
+ * CLI script inside it. The returned `pathToClaudeCodeExecutable` is the value
+ * to hand to the Agent SDK option of the same name; `null` when no CLI script
+ * exists on disk.
+ * @param {{ candidates?: string|string[], fromDir?: string,
+ *           strategy?: 'auto'|'native'|'manual' }} [opts]
+ */
+export function findClaude(opts = {}) {
+  const hit = findModule(normalizeCandidates(opts, DEFAULT_CANDIDATES), opts);
+  if (!hit) return null;
+  return {
+    ...hit,
+    pathToClaudeCodeExecutable: hit.dir ? resolveClaudeCodeExecutable(hit.name, hit.dir) : null,
+  };
+}
+
+/**
+ * findCopilot — the Copilot twin, embedded for interchange parity with the
+ * sibling harness: same core, `@github/*` candidates, no CLI-script field.
+ * @param {{ candidates?: string|string[], fromDir?: string,
+ *           strategy?: 'auto'|'native'|'manual' }} [opts]
+ */
+export function findCopilot(opts = {}) {
+  return findModule(normalizeCandidates(opts, COPILOT_DEFAULT_CANDIDATES), opts);
 }
 
 /** Look for an executable `claude` on the PATH. */
@@ -171,7 +306,9 @@ function findOnPath(env) {
  * Resolve the Claude Code executable the Agent SDK subprocess needs. Precedence:
  *   1. `config.pathToClaudeCodeExecutable` (validated as an existing file).
  *   2. `env.CLAUDE_AGENT_EXECUTABLE` (validated as an existing file).
- *   3. The CLI bundled inside `@anthropic-ai/claude-agent-sdk`.
+ *   3. `findClaude()` — the CLI script inside the closest installed
+ *      `@anthropic-ai/claude-code` or `@anthropic-ai/claude-agent-sdk` package
+ *      (native module resolution, then a manual node_modules walk).
  *   4. A `PATH` walk for an executable `claude`.
  *
  * @param {object} [opts]
@@ -199,14 +336,15 @@ export function resolveExecutablePath({ config = {}, env = process.env, fromDir,
     return path.resolve(env.CLAUDE_AGENT_EXECUTABLE);
   }
 
-  const sdkDir = findSdkDir(fromDir);
-  if (sdkDir) {
-    // the SDK ships Claude Code as cli.js; its manifest `main` (sdk.mjs) is the
-    // library itself, which exits silently when spawned as the executable
-    const cli = path.join(sdkDir, 'cli.js');
-    if (isFile(cli)) return cli;
-    const entry = readManifestEntry(sdkDir);
-    if (entry) return entry;
+  // an explicit fromDir is authoritative; otherwise search from this package, then cwd
+  const hereDir = path.dirname(fileURLToPath(import.meta.url));
+  const anchors = fromDir ? [fromDir] : [hereDir, process.cwd()];
+  for (const anchor of anchors) {
+    const hit = findClaude({ fromDir: anchor });
+    // only a probed CLI script is spawnable — the package's manifest `main`
+    // (sdk.mjs) is the library itself, which exits silently as the executable,
+    // so a hit with no CLI script falls through to the PATH walk
+    if (hit?.pathToClaudeCodeExecutable) return hit.pathToClaudeCodeExecutable;
   }
 
   const onPath = findOnPath(env);

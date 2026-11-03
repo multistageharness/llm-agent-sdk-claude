@@ -1,5 +1,8 @@
 // 09-hooks-and-events — the native hook + event lifecycle. beforeRun/afterRun and
 // beforeToolCall hooks are bridged onto native SDK hooks (PreToolUse/PostToolUse).
+//
+// Run (copy-paste; from the package root, with ANTHROPIC_API_KEY set):
+//   node examples/09-hooks-and-events.mjs "What is the capital of France?"
 import { createHarness } from './_shared.mjs';
 import { parseCommonArgs, requirePrompt, baseConfig, runExample, printResult } from './_shared.mjs';
 

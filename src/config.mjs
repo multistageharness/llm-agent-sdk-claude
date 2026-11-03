@@ -6,11 +6,13 @@
  * for tests).
  *
  * Retargeted from the Anthropic Messages API harness (`claude-sdk/v100`) to the
- * **Claude Agent SDK**: the stateless-client knobs (apiKey/authToken/baseURL/
+ * **Claude Agent SDK**: the stateless-client knobs (apiKey/authToken/
  * timeout/maxRetries/betas/maxTokens) are replaced by the Agent SDK `Options`
  * surface (model/effort/permissionMode/allowedTools/disallowedTools/maxTurns/
  * cwd/env/settingSources/mcpServers/pathToClaudeCodeExecutable/systemPrompt).
- * Auth is resolved from the environment by `runtime.mjs`, not folded in here.
+ * `baseURL` IS honored — it defaults from the ambient `ANTHROPIC_BASE_URL` and
+ * is injected back into the SDK subprocess env by `buildQueryOptions`. Auth is
+ * resolved from the environment by `runtime.mjs`, not folded in here.
  * See README "Mapping & deviations".
  */
 
@@ -56,6 +58,7 @@ export function defaultConfig(env = process.env) {
     settingSources: [],              // [] means "load no filesystem settings"
     mcpServers: {},                  // { name: McpServerConfig } (stdio/http/sse)
     pathToClaudeCodeExecutable: null,
+    baseURL: env.ANTHROPIC_BASE_URL ?? null, // endpoint override; ambient env is the default
 
     // --- extensibility (Epic 04) ---
     agents: {},                      // { name: AgentDefinition } → options.agents
@@ -148,6 +151,7 @@ export function configFromEnv(env = process.env) {
   if (env.CLAUDE_AGENT_PERMISSION_MODE) layer.permissionMode = env.CLAUDE_AGENT_PERMISSION_MODE;
   if (env.CLAUDE_AGENT_SYSTEM_PROMPT_FILE) layer.systemPromptFile = env.CLAUDE_AGENT_SYSTEM_PROMPT_FILE;
   if (env.CLAUDE_AGENT_EXECUTABLE) layer.pathToClaudeCodeExecutable = env.CLAUDE_AGENT_EXECUTABLE;
+  if (env.ANTHROPIC_BASE_URL) layer.baseURL = env.ANTHROPIC_BASE_URL;
   if (env.CLAUDE_AGENT_TOKEN_BUDGET) {
     layer.tokenBudget = { maxTokens: Number(env.CLAUDE_AGENT_TOKEN_BUDGET) };
   }
@@ -197,6 +201,9 @@ export function validateConfig(config) {
   }
   if (config.model != null && typeof config.model !== 'string') {
     problems.push('model must be a string');
+  }
+  if (config.baseURL != null && typeof config.baseURL !== 'string') {
+    problems.push('baseURL must be a string');
   }
   if (config.maxTurns != null && (!Number.isFinite(config.maxTurns) || config.maxTurns <= 0)) {
     problems.push(`maxTurns must be a positive number (got ${config.maxTurns})`);
@@ -364,6 +371,13 @@ export function buildQueryOptions(config) {
   }
   if (config.cwd != null) options.cwd = config.cwd;
   if (config.env != null) options.env = config.env;
+  // baseURL → ANTHROPIC_BASE_URL in the subprocess env. The SDK replaces the
+  // subprocess env wholesale when `env` is set, so the ambient process.env is
+  // merged underneath — a bare { ANTHROPIC_BASE_URL } would drop PATH and the
+  // API key.
+  if (config.baseURL != null) {
+    options.env = { ...process.env, ...(options.env ?? {}), ANTHROPIC_BASE_URL: config.baseURL };
+  }
   // settingSources is always emitted — an empty array is meaningful ("load no
   // filesystem settings"), so it must reach the SDK even when empty.
   options.settingSources = config.settingSources ?? [];

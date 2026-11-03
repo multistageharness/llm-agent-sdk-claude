@@ -1,5 +1,10 @@
 // 03-sse-server — HTTP server relaying harness.stream() as Server-Sent Events
 // via formatSSE(). GET /?q=<prompt> streams delta frames then a done frame.
+//
+// Run (copy-paste; from the package root, with ANTHROPIC_API_KEY set):
+//   node examples/03-sse-server.mjs                          # serves http://localhost:8787
+//   curl -N 'http://localhost:8787/?q=Tell+me+a+joke'        # in a second terminal
+//   PORT=9000 node examples/03-sse-server.mjs                # custom port
 import http from 'node:http';
 import { createHarness, formatSSE } from './_shared.mjs';
 import { parseCommonArgs, baseConfig } from './_shared.mjs';

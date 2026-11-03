@@ -1,4 +1,7 @@
 // 06a-token-budget-within — a run that fits comfortably within the budget.
+//
+// Run (copy-paste; from the package root, with ANTHROPIC_API_KEY set):
+//   node examples/06a-token-budget-within.mjs "What is 2+2?"
 import { createHarness } from './_shared.mjs';
 import { parseCommonArgs, requirePrompt, baseConfig, runExample, printResult } from './_shared.mjs';
 

@@ -1,5 +1,8 @@
 // 20-budget-warn-mode — budget enforcement 'warn': run past warnAtPercent and show
 // budget:warn firing without throwing.
+//
+// Run (copy-paste; from the package root, with ANTHROPIC_API_KEY set):
+//   node examples/20-budget-warn-mode.mjs "Tell me a fun fact."
 import { createHarness } from './_shared.mjs';
 import { parseCommonArgs, requirePrompt, baseConfig, runExample } from './_shared.mjs';
 

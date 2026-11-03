@@ -2,6 +2,9 @@
 //
 // *** demo-grade — requires a live, authenticated Claude Code runtime (and the
 //     external MCP binary on PATH). ***
+//
+// Run (copy-paste; from the package root, with ANTHROPIC_API_KEY set and my-mcp-fs on PATH):
+//   node examples/22-mcp-and-subagents.mjs "List the project files and summarize them."
 import { createHarness } from './_shared.mjs';
 import { parseCommonArgs, requirePrompt, baseConfig, runExample, printResult } from './_shared.mjs';
 

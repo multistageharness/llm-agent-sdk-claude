@@ -37,6 +37,7 @@
 
   "cwd": null,
   "pathToClaudeCodeExecutable": null,
+  "baseURL": null,
 
   "tokenBudget": {
     "maxTokens": 200000,

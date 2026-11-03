@@ -116,9 +116,9 @@ export function baseConfig(args, extra = {}) {
     effort: args.effort ?? DEFAULT_REASONING_EFFORT,
     maxTurns: args.maxTurns ?? DEFAULT_MAX_TURNS,
     ...(args.permissionMode && { permissionMode: args.permissionMode }),
-    // merge with the ambient env: the SDK replaces the subprocess env wholesale,
-    // so a bare { ANTHROPIC_BASE_URL } would drop PATH and ANTHROPIC_API_KEY
-    ...(args.baseURL && { requestDefaults: { env: { ...process.env, ANTHROPIC_BASE_URL: args.baseURL } } }),
+    // the harness merges baseURL into the subprocess env itself (PATH and the
+    // API key survive); ANTHROPIC_BASE_URL in the ambient env is the default
+    ...(args.baseURL && { baseURL: args.baseURL }),
     ...restExtra,
     ...(tokenBudget && { tokenBudget }),
   };

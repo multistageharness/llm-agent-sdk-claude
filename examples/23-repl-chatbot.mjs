@@ -1,4 +1,7 @@
 // 23-repl-chatbot — interactive REPL calling chat() per line, sharing one session.
+//
+// Run (copy-paste; from the package root, with ANTHROPIC_API_KEY set):
+//   node examples/23-repl-chatbot.mjs            # then type at the you> prompt; Ctrl+C to exit
 import readline from 'node:readline';
 import { createHarness } from './_shared.mjs';
 import { parseCommonArgs, baseConfig } from './_shared.mjs';

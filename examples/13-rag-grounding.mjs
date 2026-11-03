@@ -2,6 +2,9 @@
 // systemPrompt.append, then ground the answer.
 //
 // *** demo-grade — requires a live, authenticated Claude Code runtime. ***
+//
+// Run (copy-paste; from the package root, with ANTHROPIC_API_KEY set):
+//   node examples/13-rag-grounding.mjs "How does the harness resolve the Claude Code binary?"
 import { createHarness } from './_shared.mjs';
 import { parseCommonArgs, requirePrompt, baseConfig, runExample, printResult } from './_shared.mjs';
 

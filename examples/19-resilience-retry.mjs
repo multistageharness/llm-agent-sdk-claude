@@ -1,5 +1,9 @@
 // 19-resilience-retry — retry-with-backoff on failed runs, falling back to a
 // smaller model on the last attempt.
+//
+// Run (copy-paste; from the package root, with ANTHROPIC_API_KEY set):
+//   node examples/19-resilience-retry.mjs "What is 2+2?"
+//   FALLBACK_MODEL=claude-haiku-4-5 node examples/19-resilience-retry.mjs "What is 2+2?"
 import { createHarness } from './_shared.mjs';
 import { parseCommonArgs, requirePrompt, baseConfig, runExample, printResult } from './_shared.mjs';
 

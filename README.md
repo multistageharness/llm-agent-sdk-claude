@@ -80,8 +80,12 @@ try {
 ```
 
 The single source of truth for usage/cost is the terminal `result` message (`usage`, `modelUsage`,
-`total_cost_usd`) plus tool-loop timings. `runtime.mjs` resolves the CLI binary (override via
-`pathToClaudeCodeExecutable`).
+`total_cost_usd`) plus tool-loop timings. `runtime.mjs` resolves the CLI binary with the embedded
+`findClaude()` finder — the closest installed `@anthropic-ai/claude-code`, then
+`@anthropic-ai/claude-agent-sdk`, each located by native module resolution and a manual
+`node_modules` walk — overridable via `pathToClaudeCodeExecutable` (config) or
+`CLAUDE_AGENT_EXECUTABLE` (env). The Copilot twin `findCopilot()` is exported for interchange
+parity.
 
 ## Configuration
 
@@ -106,6 +110,7 @@ Precedence: **defaults < config file < environment < overrides**. See
 | `observability` | `{enabled:false,…}` | OTel golden signals |
 | `structured` | `{maxRepairAttempts:2,native:false}` | structured-output loop |
 | `pathToClaudeCodeExecutable` | `null` | override the resolved CLI binary |
+| `baseURL` | `env.ANTHROPIC_BASE_URL ?? null` | endpoint override, injected as `ANTHROPIC_BASE_URL` into the subprocess env |
 | `hooks` (constructor) | — | initial harness hook handlers |
 
 ### Environment variables
@@ -118,6 +123,7 @@ Precedence: **defaults < config file < environment < overrides**. See
 | `CLAUDE_AGENT_EFFORT` | `effort` |
 | `CLAUDE_AGENT_PERMISSION_MODE` | `permissionMode` |
 | `CLAUDE_AGENT_EXECUTABLE` | `pathToClaudeCodeExecutable` |
+| `ANTHROPIC_BASE_URL` | `baseURL` (default endpoint) |
 | `CLAUDE_AGENT_TOKEN_BUDGET` | `tokenBudget.maxTokens` |
 | `CLAUDE_AGENT_STORE_DIR` | `contextStore.{enabled,directory}` |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | `observability.otlpEndpoint` |
@@ -157,6 +163,8 @@ port (`github-sdk/v300`) → **Claude Agent SDK** harness.
 
 - `query()` replaces the Copilot client as the runtime entry; `runtime.mjs` is the analog of
   `cli-path.mjs` (executable resolution + factory), overridable via `pathToClaudeCodeExecutable`.
+  Both finders are embedded in `runtime.mjs` directly (`findClaude` / `findCopilot`, one shared
+  `findModule` core) — no separate finder package.
 - `permissionMode` (`default\|acceptEdits\|plan\|bypassPermissions`) + `canUseTool` replace the Copilot
   proxy flags; `--cli-path` / `--proxy` are gone.
 - Native hooks map 1:1 rather than being translated.

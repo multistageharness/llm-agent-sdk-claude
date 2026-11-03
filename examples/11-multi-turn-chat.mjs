@@ -1,4 +1,7 @@
 // 11-multi-turn-chat — multiple sequential chat() calls sharing one native session.
+//
+// Run (copy-paste; from the package root, with ANTHROPIC_API_KEY set):
+//   node examples/11-multi-turn-chat.mjs "What are the trade-offs of SSE vs WebSockets?"
 import { createHarness } from './_shared.mjs';
 import { parseCommonArgs, requirePrompt, baseConfig, runExample } from './_shared.mjs';
 

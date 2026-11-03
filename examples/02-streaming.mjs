@@ -1,4 +1,7 @@
 // 02-streaming — token-by-token harness.stream() deltas (includePartialMessages).
+//
+// Run (copy-paste; from the package root, with ANTHROPIC_API_KEY set):
+//   node examples/02-streaming.mjs "Write a haiku about streaming tokens."
 import { createHarness } from './_shared.mjs';
 import { parseCommonArgs, requirePrompt, baseConfig, runExample, printDelta } from './_shared.mjs';
 
