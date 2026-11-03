@@ -1,0 +1,58 @@
+{
+  "name": "llm-sdk-claude-agent",
+  "version": "0.1.0",
+  "description": "Production harness around the Claude Agent SDK (@anthropic-ai/claude-agent-sdk): chat, native streaming + SSE, structured I/O, tool calling via in-process SDK MCP servers, native sessions, token budgets, usage/cost accounting, permission modes, events + hooks bridged to native SDK hooks, and OpenTelemetry observability. The runtime sibling of the Anthropic Messages API harness.",
+  "type": "module",
+  "main": "src/index.mjs",
+  "exports": {
+    ".": "./src/index.mjs",
+    "./config": "./src/config.mjs",
+    "./runtime": "./src/runtime.mjs",
+    "./tokens": "./src/tokens.mjs",
+    "./usage": "./src/usage.mjs",
+    "./store": "./src/store.mjs",
+    "./hooks": "./src/hooks.mjs",
+    "./structured": "./src/structured.mjs",
+    "./observability": "./src/observability.mjs"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "test:watch": "node --test --watch test/*.test.mjs",
+    "example": "node examples/01-chat.mjs"
+  },
+  "keywords": [
+    "claude",
+    "anthropic",
+    "agent-sdk",
+    "claude-agent-sdk",
+    "claude-code",
+    "llm",
+    "harness",
+    "opentelemetry",
+    "sre",
+    "streaming",
+    "structured-output",
+    "tool-calling",
+    "mcp"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/multistageharness/llm-sdk-claude-agent.git"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.6"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.1.0",
+    "zod": "^3.25.0 || ^4.0.0"
+  },
+  "peerDependencies": {
+    "@opentelemetry/api": ">=1.7.0"
+  },
+  "peerDependenciesMeta": {
+    "@opentelemetry/api": {
+      "optional": true
+    }
+  }
+}

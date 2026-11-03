@@ -1,0 +1,67 @@
+{
+  "model": "claude-opus-4-8",
+  "effort": "low",
+  "permissionMode": "default",
+  "allowedTools": [],
+  "disallowedTools": [],
+  "maxTurns": 10,
+
+  "systemPrompt": null,
+  "systemPromptFile": null,
+  "systemPromptMode": "append",
+  "systemPromptPreset": "claude_code",
+
+  "settingSources": [],
+
+  "mcpServers": {
+    "fs": { "command": "my-mcp", "args": ["--stdio"] },
+    "docs": { "type": "http", "url": "https://example.invalid/mcp" }
+  },
+
+  "agents": {
+    "reviewer": {
+      "description": "Reviews diffs for correctness and style",
+      "prompt": "You are a meticulous code reviewer. Report concrete, actionable findings.",
+      "tools": ["Read", "Grep"],
+      "model": "claude-opus-4-8",
+      "effort": "high",
+      "maxTurns": 6
+    }
+  },
+
+  "permissions": {
+    "allow": [],
+    "deny": []
+  },
+  "autoAllowMcp": false,
+
+  "cwd": null,
+  "pathToClaudeCodeExecutable": null,
+
+  "tokenBudget": {
+    "maxTokens": 200000,
+    "warnAtPercent": 80,
+    "enforcement": "block"
+  },
+
+  "contextStore": {
+    "enabled": false,
+    "directory": ".claude-agent-harness/context"
+  },
+
+  "observability": {
+    "enabled": false,
+    "serviceName": "claude-agent-sdk-harness",
+    "otlpEndpoint": null,
+    "exporterType": null,
+    "filePath": null,
+    "captureContent": false
+  },
+
+  "structured": {
+    "maxRepairAttempts": 2,
+    "native": false
+  },
+
+  "requestDefaults": {}
+}
