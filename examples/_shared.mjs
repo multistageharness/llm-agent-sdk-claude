@@ -12,8 +12,10 @@
  *   --budget-warn <pct>     warn-at percent (default 80)
  *   --budget-enforcement    block | warn (default warn for examples)
  *
- * Authentication follows the runtime: ANTHROPIC_API_KEY (or
- * CLAUDE_CODE_USE_BEDROCK / CLAUDE_CODE_USE_VERTEX for enterprise).
+ * Authentication follows the runtime: ANTHROPIC_API_KEY, CLAUDE_CODE_OAUTH_TOKEN,
+ * CLAUDE_CODE_USE_BEDROCK / CLAUDE_CODE_USE_VERTEX (enterprise), or
+ * CLAUDE_AGENT_USE_CLI_LOGIN=1 (installed CLI's stored login — also prefers the
+ * installed `claude` binary over the SDK-bundled cli.js).
  *
  * The Copilot harness's --cli-path / --proxy flags are gone: the Agent SDK
  * resolves its own Claude Code binary (override with pathToClaudeCodeExecutable)

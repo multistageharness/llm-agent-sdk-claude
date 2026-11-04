@@ -81,11 +81,15 @@ try {
 
 The single source of truth for usage/cost is the terminal `result` message (`usage`, `modelUsage`,
 `total_cost_usd`) plus tool-loop timings. `runtime.mjs` resolves the CLI binary with the embedded
-`findClaude()` finder — the closest installed `@anthropic-ai/claude-code`, then
+finders — `findClaude()` (the closest installed `@anthropic-ai/claude-code`, then
 `@anthropic-ai/claude-agent-sdk`, each located by native module resolution and a manual
-`node_modules` walk — overridable via `pathToClaudeCodeExecutable` (config) or
-`CLAUDE_AGENT_EXECUTABLE` (env). The Copilot twin `findCopilot()` is exported for interchange
-parity.
+`node_modules` walk) and `findNativeBinary()` (the installed `claude`: `~/.local/bin`,
+`~/.claude/local`, system dirs, PATH) — overridable via `pathToClaudeCodeExecutable` (config) or
+`CLAUDE_AGENT_EXECUTABLE` (env). `CLAUDE_AGENT_USE_CLI_LOGIN=1` flips the preference to the
+installed binary, which owns the CLI login session — spawning the SDK-bundled `cli.js` instead has
+been observed to stall on startup in plain terminals (suspected, **unconfirmed** macOS Keychain
+prompt; see `claude-sdk-hang-troubleshooting.md` at the repo family root). The Copilot twin
+`findCopilot()` is exported for interchange parity.
 
 ## Configuration
 
@@ -118,7 +122,9 @@ Precedence: **defaults < config file < environment < overrides**. See
 | Var | Maps to |
 | --- | --- |
 | `ANTHROPIC_API_KEY` | runtime auth (api-key) |
+| `CLAUDE_CODE_OAUTH_TOKEN` | runtime auth (oauth-token, e.g. from `claude setup-token`) |
 | `CLAUDE_CODE_USE_BEDROCK` / `CLAUDE_CODE_USE_VERTEX` | enterprise auth |
+| `CLAUDE_AGENT_USE_CLI_LOGIN` | runtime auth (cli-login) + prefer the installed `claude` binary |
 | `CLAUDE_AGENT_MODEL` | `model` |
 | `CLAUDE_AGENT_EFFORT` | `effort` |
 | `CLAUDE_AGENT_PERMISSION_MODE` | `permissionMode` |

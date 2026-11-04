@@ -40,6 +40,20 @@ export const COPILOT_DEFAULT_CANDIDATES = [
   '@github/copilot-language-server',
 ];
 
+/** Binary names probed by the native-binary finder. */
+export const DEFAULT_BINARY_NAMES = ['claude'];
+
+/** Non-PATH system dirs worth probing on POSIX (Homebrew keg + classic local). */
+export const DEFAULT_SYSTEM_DIRS = ['/usr/local/bin', '/opt/homebrew/bin'];
+
+/**
+ * Kinds tried first-match-wins by `findClaudeBinary`. A project-local
+ * node_modules install pins a version, so it outranks whatever global binary
+ * happens to be on the machine — flipped when `CLAUDE_AGENT_USE_CLI_LOGIN` is
+ * set (see `resolveExecutablePath`).
+ */
+export const DEFAULT_ORDER = ['node-module', 'native-binary'];
+
 /**
  * Relative locations where a Claude Code CLI script is known to live inside a
  * found package, probed after the manifest's bin targets:
@@ -286,17 +300,166 @@ export function findCopilot(opts = {}) {
   return findModule(normalizeCandidates(opts, COPILOT_DEFAULT_CANDIDATES), opts);
 }
 
-/** Look for an executable `claude` on the PATH. */
-function findOnPath(env) {
-  const PATH = env.PATH ?? env.Path ?? '';
-  if (!PATH) return null;
-  const isWin = process.platform === 'win32';
-  const names = isWin ? ['claude.cmd', 'claude.exe', 'claude'] : ['claude'];
-  for (const entry of PATH.split(path.delimiter)) {
-    if (!entry) continue;
-    for (const name of names) {
-      const candidate = path.join(entry, name);
-      if (isFile(candidate)) return path.resolve(candidate);
+/* ------------------------------------------------------------------ *
+ * native-binary kind (embedded from find-claude-binary-directory-path)
+ * ------------------------------------------------------------------ */
+
+const VERSIONISH = /^\d+\.\d+\.\d+/;
+
+function binaryNameVariants(name, platform) {
+  return platform === 'win32' ? [`${name}.exe`, `${name}.cmd`, name] : [name];
+}
+
+/**
+ * Enumerate the on-disk locations where a claude binary may live, in probe
+ * order. Pure — nothing is checked for existence here.
+ *   1. home-local-bin — `~/.local/bin/<name>` (the native installer's symlink)
+ *   2. claude-local   — `~/.claude/local/<name>` (legacy local install)
+ *   3. system         — `systemDirs` (default /usr/local/bin, /opt/homebrew/bin; POSIX only)
+ *   4. PATH           — every directory on PATH
+ * HOME is read ONLY from `env` (HOME/USERPROFILE).
+ */
+export function nativeBinaryLocations(opts = {}) {
+  const env = opts.env || process.env;
+  const platform = opts.platform || process.platform;
+  const names = opts.names
+    ? (Array.isArray(opts.names) ? opts.names : [opts.names])
+    : DEFAULT_BINARY_NAMES;
+  const systemDirs = opts.systemDirs
+    ?? (platform === 'win32' ? [] : DEFAULT_SYSTEM_DIRS);
+
+  const home = env.HOME || env.USERPROFILE || null;
+  const pathDirs = String(env.PATH || env.Path || '')
+    .split(path.delimiter)
+    .filter(Boolean);
+
+  const locations = [];
+  for (const name of names) {
+    for (const variant of binaryNameVariants(name, platform)) {
+      if (home) {
+        locations.push({ source: 'home-local-bin', path: path.join(home, '.local', 'bin', variant) });
+        locations.push({ source: 'claude-local', path: path.join(home, '.claude', 'local', variant) });
+      }
+      for (const dir of systemDirs) {
+        locations.push({ source: 'system', path: path.join(dir, variant) });
+      }
+      for (const dir of pathDirs) {
+        locations.push({ source: 'PATH', path: path.join(dir, variant) });
+      }
+    }
+  }
+  return locations;
+}
+
+function isExecutableFile(p, platform = process.platform) {
+  try {
+    const st = fs.statSync(p); // follows symlinks
+    if (!st.isFile()) return false;
+    if (platform === 'win32') return true;
+    return (st.mode & 0o111) !== 0;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Inspect a candidate binary path: must be an existing executable file.
+ * Follows symlinks (the native installer links `~/.local/bin/claude` →
+ * `~/.local/share/claude/versions/<version>`) and extracts the version from a
+ * `versions/<v>` or Homebrew `Cellar/<formula>/<v>` path. Never spawns.
+ * @returns {{ path, realpath, dir, version: string|null, isSymlink: boolean }|null}
+ */
+export function inspectBinary(p, opts = {}) {
+  const platform = opts.platform || process.platform;
+  if (!isExecutableFile(p, platform)) return null;
+
+  let isSymlink = false;
+  try {
+    isSymlink = fs.lstatSync(p).isSymbolicLink();
+  } catch {
+    return null;
+  }
+  let realpath = p;
+  try {
+    realpath = fs.realpathSync(p);
+  } catch {
+    // broken realpath on an exec'able stat is unlikely; keep the original
+  }
+
+  let version = null;
+  const base = path.basename(realpath);
+  if (VERSIONISH.test(base)) {
+    version = base;
+  } else {
+    const segments = realpath.split(path.sep);
+    const i = segments.lastIndexOf('versions');
+    if (i !== -1 && i + 1 < segments.length && VERSIONISH.test(segments[i + 1])) {
+      version = segments[i + 1];
+    } else {
+      // Homebrew keg: …/Cellar/<formula>/<version>/bin/<name>
+      const c = segments.lastIndexOf('Cellar');
+      if (c !== -1 && c + 2 < segments.length && VERSIONISH.test(segments[c + 2])) {
+        version = segments[c + 2];
+      }
+    }
+  }
+
+  return { path: p, realpath, dir: path.dirname(realpath), version, isSymlink };
+}
+
+/**
+ * Find a standalone claude binary on disk. Probes `nativeBinaryLocations()`
+ * in order, deduplicating by resolved realpath; first hit wins.
+ * Returns a result with `kind: 'native-binary'`, or null.
+ */
+export function findNativeBinary(opts = {}) {
+  const platform = opts.platform || process.platform;
+  const seen = new Set();
+  for (const loc of nativeBinaryLocations(opts)) {
+    const info = inspectBinary(loc.path, { platform });
+    if (!info) continue;
+    if (seen.has(info.realpath)) continue;
+    seen.add(info.realpath);
+    return {
+      kind: 'native-binary',
+      name: path.basename(loc.path),
+      source: loc.source,
+      path: info.path,
+      realpath: info.realpath,
+      dir: info.dir,
+      version: info.version,
+      isSymlink: info.isSymlink,
+      executable: info.path,
+    };
+  }
+  return null;
+}
+
+/**
+ * Find a Claude Code install of either kind, first-match-wins across `order`
+ * (default: node-module, then native-binary). Every hit carries `kind` and a
+ * spawnable `executable` (the package's cli.js to run with node, or the binary
+ * itself).
+ * @param {{ order?: string|string[], fromDir?: string, candidates?: string|string[],
+ *           strategy?: 'auto'|'native'|'manual', names?: string|string[],
+ *           env?: object, platform?: string, systemDirs?: string[] }} [opts]
+ */
+export function findClaudeBinary(opts = {}) {
+  const order = opts.order
+    ? (Array.isArray(opts.order) ? opts.order : [opts.order])
+    : DEFAULT_ORDER;
+
+  for (const kind of order) {
+    if (kind === 'node-module') {
+      const hit = findClaude(opts);
+      if (hit?.pathToClaudeCodeExecutable) {
+        return { ...hit, kind: 'node-module', executable: hit.pathToClaudeCodeExecutable };
+      }
+    } else if (kind === 'native-binary') {
+      const hit = findNativeBinary(opts);
+      if (hit) return hit;
+    } else {
+      throw new Error(`unknown kind in order: ${JSON.stringify(kind)} (expected 'node-module' or 'native-binary')`);
     }
   }
   return null;
@@ -306,10 +469,17 @@ function findOnPath(env) {
  * Resolve the Claude Code executable the Agent SDK subprocess needs. Precedence:
  *   1. `config.pathToClaudeCodeExecutable` (validated as an existing file).
  *   2. `env.CLAUDE_AGENT_EXECUTABLE` (validated as an existing file).
- *   3. `findClaude()` — the CLI script inside the closest installed
+ *   3. With `env.CLAUDE_AGENT_USE_CLI_LOGIN` set (and not '0'): the installed
+ *      native `claude` binary first (`findNativeBinary()` — ~/.local/bin,
+ *      ~/.claude/local, system dirs, PATH). The installed binary owns the CLI
+ *      login session; spawning the SDK-bundled cli.js instead has been observed
+ *      to stall on startup in plain terminals (suspected, unconfirmed macOS
+ *      Keychain prompt — see claude-sdk-hang-troubleshooting.md).
+ *   4. `findClaude()` — the CLI script inside the closest installed
  *      `@anthropic-ai/claude-code` or `@anthropic-ai/claude-agent-sdk` package
  *      (native module resolution, then a manual node_modules walk).
- *   4. A `PATH` walk for an executable `claude`.
+ *   5. `findNativeBinary()` — the installed `claude` binary (superset of the
+ *      old PATH walk: the native installer's locations are probed too).
  *
  * @param {object} [opts]
  * @param {object} [opts.config]
@@ -336,6 +506,12 @@ export function resolveExecutablePath({ config = {}, env = process.env, fromDir,
     return path.resolve(env.CLAUDE_AGENT_EXECUTABLE);
   }
 
+  const useCliLogin = env.CLAUDE_AGENT_USE_CLI_LOGIN && env.CLAUDE_AGENT_USE_CLI_LOGIN !== '0';
+  if (useCliLogin) {
+    const native = findNativeBinary({ env });
+    if (native) return native.executable;
+  }
+
   // an explicit fromDir is authoritative; otherwise search from this package, then cwd
   const hereDir = path.dirname(fileURLToPath(import.meta.url));
   const anchors = fromDir ? [fromDir] : [hereDir, process.cwd()];
@@ -343,12 +519,14 @@ export function resolveExecutablePath({ config = {}, env = process.env, fromDir,
     const hit = findClaude({ fromDir: anchor });
     // only a probed CLI script is spawnable — the package's manifest `main`
     // (sdk.mjs) is the library itself, which exits silently as the executable,
-    // so a hit with no CLI script falls through to the PATH walk
+    // so a hit with no CLI script falls through to the native-binary probe
     if (hit?.pathToClaudeCodeExecutable) return hit.pathToClaudeCodeExecutable;
   }
 
-  const onPath = findOnPath(env);
-  if (onPath) return onPath;
+  if (!useCliLogin) {
+    const native = findNativeBinary({ env });
+    if (native) return native.executable;
+  }
 
   if (required) {
     throw new Error(
@@ -363,8 +541,12 @@ export function resolveExecutablePath({ config = {}, env = process.env, fromDir,
  * Confirm credentials are available in the environment before spawning the SDK
  * subprocess. Returns `{ mode }` for the first match — never the secret value.
  *   ANTHROPIC_API_KEY → 'api-key'
+ *   CLAUDE_CODE_OAUTH_TOKEN → 'oauth-token'  (e.g. from `claude setup-token`)
  *   CLAUDE_CODE_USE_BEDROCK → 'bedrock'
  *   CLAUDE_CODE_USE_VERTEX → 'vertex'
+ *   CLAUDE_AGENT_USE_CLI_LOGIN → 'cli-login' (the spawned CLI authenticates
+ *     itself from its stored login; pair with the installed-binary preference
+ *     in `resolveExecutablePath`)
  *
  * @param {NodeJS.ProcessEnv} [env]
  * @param {{ required?: boolean }} [opts] set required:false to probe without throwing
@@ -372,12 +554,17 @@ export function resolveExecutablePath({ config = {}, env = process.env, fromDir,
  */
 export function resolveAuth(env = process.env, { required = true } = {}) {
   if (env.ANTHROPIC_API_KEY) return { mode: 'api-key' };
+  if (env.CLAUDE_CODE_OAUTH_TOKEN) return { mode: 'oauth-token' };
   if (env.CLAUDE_CODE_USE_BEDROCK) return { mode: 'bedrock' };
   if (env.CLAUDE_CODE_USE_VERTEX) return { mode: 'vertex' };
+  if (env.CLAUDE_AGENT_USE_CLI_LOGIN && env.CLAUDE_AGENT_USE_CLI_LOGIN !== '0') {
+    return { mode: 'cli-login' };
+  }
   if (required) {
     throw new Error(
-      'No Claude auth found. Set ANTHROPIC_API_KEY, or CLAUDE_CODE_USE_BEDROCK, or '
-      + 'CLAUDE_CODE_USE_VERTEX.',
+      'No Claude auth found. Set ANTHROPIC_API_KEY, CLAUDE_CODE_OAUTH_TOKEN, '
+      + 'CLAUDE_CODE_USE_BEDROCK, CLAUDE_CODE_USE_VERTEX, or '
+      + 'CLAUDE_AGENT_USE_CLI_LOGIN=1 (use the installed CLI\'s stored login).',
     );
   }
   return { mode: null };

@@ -10,6 +10,11 @@ export ANTHROPIC_API_KEY=...          # or CLAUDE_CODE_USE_BEDROCK=1 / CLAUDE_CO
 node examples/01-chat.mjs "What is 2+2?"
 ```
 
+Two more auth routes: `CLAUDE_CODE_OAUTH_TOKEN` (e.g. from `claude setup-token`), and
+`CLAUDE_AGENT_USE_CLI_LOGIN=1` — use the installed CLI's stored login, which also makes the
+harness prefer the installed `claude` binary over the SDK-bundled `cli.js` (useful when a
+terminal run stalls on startup; see `claude-sdk-hang-troubleshooting.md` at the repo family root).
+
 Every example's header comment carries a `Run (copy-paste)` block with ready-to-run commands
 (concrete prompts, plus flag/env variants where relevant) — open the file and paste.
 
