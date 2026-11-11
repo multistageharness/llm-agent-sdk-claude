@@ -1,0 +1,3903 @@
+{
+  "commit": "cbcdcf7",
+  "enrichment": {
+    "configPrecedence": [
+      "defaultConfig(env) \u2014 built-in defaults (CLAUDE_AGENT_MODEL / CLAUDE_AGENT_EFFORT / ANTHROPIC_BASE_URL consulted for default values)",
+      "loadConfigFile(configFile) \u2014 JSON file, reasoningEffort\u2192effort normalized",
+      "configFromEnv(env) \u2014 LLM_SDK_* canonical names first, then CLAUDE_AGENT_* / ANTHROPIC_BASE_URL / OTEL_* (provider-prefixed win)",
+      "overrides \u2014 programmatic options.config, reasoningEffort\u2192effort normalized"
+    ],
+    "configSchema": [
+      {
+        "default": "(unset; read by harness for span name, falls back to 'harness')",
+        "env": [],
+        "path": "agentName",
+        "type": "string"
+      },
+      {
+        "default": "{}",
+        "env": [],
+        "path": "agents",
+        "type": "Record<string, AgentDefinition>"
+      },
+      {
+        "default": "[]",
+        "env": [],
+        "path": "allowedTools",
+        "type": "string[]"
+      },
+      {
+        "default": "false",
+        "env": [],
+        "path": "autoAllowMcp",
+        "type": "boolean"
+      },
+      {
+        "default": "env.ANTHROPIC_BASE_URL ?? null",
+        "env": [
+          "ANTHROPIC_BASE_URL"
+        ],
+        "path": "baseURL",
+        "type": "string | null"
+      },
+      {
+        "default": "'.claude-agent-harness/context'",
+        "env": [
+          "LLM_SDK_STORE_DIR",
+          "CLAUDE_AGENT_STORE_DIR"
+        ],
+        "path": "contextStore.directory",
+        "type": "string"
+      },
+      {
+        "default": "false",
+        "env": [
+          "LLM_SDK_STORE_DIR",
+          "CLAUDE_AGENT_STORE_DIR"
+        ],
+        "path": "contextStore.enabled",
+        "type": "boolean"
+      },
+      {
+        "default": "null",
+        "env": [],
+        "path": "cwd",
+        "type": "string | null"
+      },
+      {
+        "default": "[]",
+        "env": [],
+        "path": "disallowedTools",
+        "type": "string[]"
+      },
+      {
+        "default": "env.CLAUDE_AGENT_EFFORT ?? 'low'",
+        "env": [
+          "LLM_SDK_REASONING_EFFORT",
+          "CLAUDE_AGENT_EFFORT"
+        ],
+        "path": "effort",
+        "type": "'low'|'medium'|'high'|'xhigh'|'max'"
+      },
+      {
+        "default": "null",
+        "env": [],
+        "path": "env",
+        "type": "Record<string,string> | null"
+      },
+      {
+        "default": "null",
+        "env": [],
+        "path": "hookTimeoutMs",
+        "type": "number | null"
+      },
+      {
+        "default": "(unset; inert parity key)",
+        "env": [
+          "LLM_SDK_MAX_TOKENS"
+        ],
+        "path": "maxTokens",
+        "type": "number"
+      },
+      {
+        "default": "10",
+        "env": [],
+        "path": "maxTurns",
+        "type": "number"
+      },
+      {
+        "default": "{}",
+        "env": [],
+        "path": "mcpServers",
+        "type": "Record<string, McpServerConfig>"
+      },
+      {
+        "default": "env.CLAUDE_AGENT_MODEL ?? 'claude-opus-4-8'",
+        "env": [
+          "LLM_SDK_MODEL",
+          "CLAUDE_AGENT_MODEL"
+        ],
+        "path": "model",
+        "type": "string"
+      },
+      {
+        "default": "{}",
+        "env": [],
+        "path": "nativeHooks",
+        "type": "Record<HookEvent, HookCallbackMatcher[]>"
+      },
+      {
+        "default": "false",
+        "env": [],
+        "path": "observability.captureContent",
+        "type": "boolean"
+      },
+      {
+        "default": "false",
+        "env": [],
+        "path": "observability.enabled",
+        "type": "boolean"
+      },
+      {
+        "default": "null",
+        "env": [],
+        "path": "observability.exporterType",
+        "type": "string | null"
+      },
+      {
+        "default": "null",
+        "env": [],
+        "path": "observability.filePath",
+        "type": "string | null"
+      },
+      {
+        "default": "null",
+        "env": [
+          "OTEL_EXPORTER_OTLP_ENDPOINT"
+        ],
+        "path": "observability.otlpEndpoint",
+        "type": "string | null"
+      },
+      {
+        "default": "(unset; derived from CLAUDE_CODE_USE_BEDROCK / CLAUDE_CODE_USE_VERTEX)",
+        "env": [],
+        "path": "observability.providerName",
+        "type": "string"
+      },
+      {
+        "default": "'claude-agent-sdk-harness'",
+        "env": [],
+        "path": "observability.serviceName",
+        "type": "string"
+      },
+      {
+        "default": "(unset; read by telemetryConfigFor)",
+        "env": [],
+        "path": "observability.sourceName",
+        "type": "string"
+      },
+      {
+        "default": "null",
+        "env": [
+          "CLAUDE_AGENT_EXECUTABLE"
+        ],
+        "path": "pathToClaudeCodeExecutable",
+        "type": "string | null"
+      },
+      {
+        "default": "'default'",
+        "env": [
+          "CLAUDE_AGENT_PERMISSION_MODE"
+        ],
+        "path": "permissionMode",
+        "type": "'default'|'acceptEdits'|'plan'|'bypassPermissions'"
+      },
+      {
+        "default": "[]",
+        "env": [],
+        "path": "permissions.allow",
+        "type": "string[]"
+      },
+      {
+        "default": "[]",
+        "env": [],
+        "path": "permissions.deny",
+        "type": "string[]"
+      },
+      {
+        "default": "(unset; alias mirrored onto effort per layer)",
+        "env": [],
+        "path": "reasoningEffort",
+        "type": "string"
+      },
+      {
+        "default": "{}",
+        "env": [],
+        "path": "requestDefaults",
+        "type": "Partial<Options>"
+      },
+      {
+        "default": "[]",
+        "env": [],
+        "path": "settingSources",
+        "type": "string[]"
+      },
+      {
+        "default": "2",
+        "env": [],
+        "path": "structured.maxRepairAttempts",
+        "type": "number"
+      },
+      {
+        "default": "false",
+        "env": [],
+        "path": "structured.native",
+        "type": "boolean"
+      },
+      {
+        "default": "null",
+        "env": [],
+        "path": "systemPrompt",
+        "type": "string | null"
+      },
+      {
+        "default": "null",
+        "env": [
+          "LLM_SDK_SYSTEM_PROMPT_FILE",
+          "CLAUDE_AGENT_SYSTEM_PROMPT_FILE"
+        ],
+        "path": "systemPromptFile",
+        "type": "string | null"
+      },
+      {
+        "default": "'append'",
+        "env": [],
+        "path": "systemPromptMode",
+        "type": "'append'|'replace'"
+      },
+      {
+        "default": "'claude_code'",
+        "env": [],
+        "path": "systemPromptPreset",
+        "type": "string"
+      },
+      {
+        "default": "'block'",
+        "env": [],
+        "path": "tokenBudget.enforcement",
+        "type": "'block'|'warn'"
+      },
+      {
+        "default": "null",
+        "env": [
+          "LLM_SDK_TOKEN_BUDGET",
+          "CLAUDE_AGENT_TOKEN_BUDGET"
+        ],
+        "path": "tokenBudget.maxTokens",
+        "type": "number | null"
+      },
+      {
+        "default": "80",
+        "env": [],
+        "path": "tokenBudget.warnAtPercent",
+        "type": "number"
+      }
+    ],
+    "events": {
+      "dynamic": [],
+      "static": [
+        "budget:exceeded",
+        "budget:warn",
+        "delta",
+        "error:run",
+        "event",
+        "message",
+        "preflight",
+        "run:end",
+        "run:start",
+        "session:created",
+        "session:replayed",
+        "session:resumed",
+        "started",
+        "stopped",
+        "structured:invalid",
+        "structured:ok",
+        "subagent:activity",
+        "subagent:start",
+        "tool:call",
+        "tool:denied",
+        "tool:error",
+        "tool:result",
+        "usage:tokens"
+      ]
+    },
+    "hooks": [
+      {
+        "canVeto": false,
+        "errorSemantics": "swallowed",
+        "name": "afterRun",
+        "trigger": "chat()/stream() after result ingested + store write, before run:end"
+      },
+      {
+        "canVeto": false,
+        "errorSemantics": "swallowed",
+        "name": "afterToolCall",
+        "trigger": "native PostToolUse bridge (non-error output) or wrapper when unbridged"
+      },
+      {
+        "canVeto": true,
+        "errorSemantics": "propagates",
+        "name": "beforeRun",
+        "trigger": "after preflight(), before budget gate & dispatch; throw aborts"
+      },
+      {
+        "canVeto": true,
+        "errorSemantics": "propagates",
+        "name": "beforeToolCall",
+        "trigger": "native PreToolUse + canUseTool (cached per toolUseId); {deny,reason} blocks, {updatedInput} rewrites"
+      },
+      {
+        "canVeto": false,
+        "errorSemantics": "swallowed",
+        "name": "onBudgetExceeded",
+        "trigger": "budget gate in block mode (before throw) and post-run reconcile 'exceeded'"
+      },
+      {
+        "canVeto": false,
+        "errorSemantics": "swallowed",
+        "name": "onBudgetWarning",
+        "trigger": "post-run reconcile 'warn' transition (fire-and-forget)"
+      },
+      {
+        "canVeto": false,
+        "errorSemantics": "swallowed",
+        "name": "onError",
+        "trigger": "chat/stream catch, phase 'chat'|'stream'"
+      },
+      {
+        "canVeto": false,
+        "errorSemantics": "swallowed",
+        "name": "onPromptSubmit",
+        "trigger": "native UserPromptSubmit"
+      },
+      {
+        "canVeto": false,
+        "errorSemantics": "swallowed",
+        "name": "onSessionEnd",
+        "trigger": "native SessionEnd; harness.stop() when a session ran"
+      },
+      {
+        "canVeto": false,
+        "errorSemantics": "swallowed",
+        "name": "onSessionStart",
+        "trigger": "native SessionStart"
+      },
+      {
+        "canVeto": false,
+        "errorSemantics": "swallowed",
+        "name": "onToolFailure",
+        "trigger": "native PostToolUse (error output / handler error) or wrapper when unbridged"
+      }
+    ],
+    "nativeHookBridge": {
+      "PostToolUse": "afterToolCall / onToolFailure",
+      "PreToolUse": "beforeToolCall + permissions.deny \u2192 permissionDecision deny | allow+updatedInput",
+      "SessionEnd": "onSessionEnd",
+      "SessionStart": "onSessionStart",
+      "Stop": "(no-op placeholder)",
+      "UserPromptSubmit": "onPromptSubmit"
+    },
+    "runtimeEnvVars": [
+      {
+        "effect": "auth mode 'api-key'",
+        "name": "ANTHROPIC_API_KEY",
+        "reader": "runtime.resolveAuth"
+      },
+      {
+        "effect": "auth mode 'cli-login'; prefer installed native binary (unless '0')",
+        "name": "CLAUDE_AGENT_USE_CLI_LOGIN",
+        "reader": "runtime.resolveAuth, runtime.resolveExecutablePath"
+      },
+      {
+        "effect": "auth mode 'oauth-token'",
+        "name": "CLAUDE_CODE_OAUTH_TOKEN",
+        "reader": "runtime.resolveAuth"
+      },
+      {
+        "effect": "auth mode 'bedrock'; gen_ai.provider.name 'aws.bedrock' (unless '0')",
+        "name": "CLAUDE_CODE_USE_BEDROCK",
+        "reader": "runtime.resolveAuth, harness.providerNameFor"
+      },
+      {
+        "effect": "auth mode 'vertex'; gen_ai.provider.name 'gcp.vertex_ai' (unless '0')",
+        "name": "CLAUDE_CODE_USE_VERTEX",
+        "reader": "runtime.resolveAuth, harness.providerNameFor"
+      },
+      {
+        "effect": "executable path (precedence 2 in resolveExecutablePath)",
+        "name": "CLAUDE_AGENT_EXECUTABLE",
+        "reader": "config.configFromEnv, runtime.resolveExecutablePath"
+      },
+      {
+        "effect": "~/.local/bin, ~/.claude/local probe roots",
+        "name": "HOME",
+        "reader": "runtime.nativeBinaryLocations"
+      },
+      {
+        "effect": "PATH probe dirs (also reads env.Path)",
+        "name": "PATH",
+        "reader": "runtime.nativeBinaryLocations"
+      },
+      {
+        "effect": "HOME fallback (Windows)",
+        "name": "USERPROFILE",
+        "reader": "runtime.nativeBinaryLocations"
+      }
+    ],
+    "upstream": {
+      "@anthropic-ai/claude-agent-sdk": {
+        "bridgedHooks": [
+          "PreToolUse",
+          "PostToolUse",
+          "UserPromptSubmit",
+          "SessionStart",
+          "SessionEnd",
+          "Stop"
+        ],
+        "consumedMessages": [
+          "system/init (session_id, mcp_servers)",
+          "assistant (message.id, message.content, message.usage, message.model, parent_tool_use_id)",
+          "stream_event (event.type content_block_delta: text_delta | thinking_delta)",
+          "result (subtype, session_id, usage, total_cost_usd, num_turns, modelUsage, permission_denials)"
+        ],
+        "optionsKeys": [
+          "abortController",
+          "agents",
+          "allowedTools",
+          "canUseTool",
+          "cwd",
+          "disallowedTools",
+          "effort",
+          "env",
+          "forkSession",
+          "hooks",
+          "includePartialMessages",
+          "maxTurns",
+          "mcpServers",
+          "model",
+          "pathToClaudeCodeExecutable",
+          "permissionMode",
+          "resume",
+          "settingSources",
+          "systemPrompt"
+        ],
+        "primitives": [
+          "query({ prompt, options })",
+          "tool(name, description, zodShape, handler)",
+          "createSdkMcpServer({ name, version, tools })"
+        ],
+        "range": "^0.1.0"
+      },
+      "@opentelemetry/api": {
+        "instruments": [
+          {
+            "name": "claude_agent_harness.budget.utilization",
+            "type": "ObservableGauge"
+          },
+          {
+            "name": "claude_agent_harness.context_window.utilization",
+            "type": "ObservableGauge"
+          },
+          {
+            "attrs": "kind=provider|rate_limit|session|harness",
+            "name": "claude_agent_harness.errors",
+            "type": "Counter"
+          },
+          {
+            "name": "claude_agent_harness.request.duration_ms",
+            "type": "Histogram",
+            "unit": "ms"
+          },
+          {
+            "name": "claude_agent_harness.request.ttft_ms",
+            "type": "Histogram",
+            "unit": "ms"
+          },
+          {
+            "name": "claude_agent_harness.requests",
+            "type": "Counter"
+          },
+          {
+            "attrs": "direction=input|output|reasoning|cache_read|cache_write",
+            "name": "claude_agent_harness.tokens",
+            "type": "Counter"
+          },
+          {
+            "attrs": "tool, outcome=success|failure|denied",
+            "name": "claude_agent_harness.tool.calls",
+            "type": "Counter"
+          },
+          {
+            "name": "claude_agent_harness.tool.duration_ms",
+            "type": "Histogram",
+            "unit": "ms"
+          }
+        ],
+        "primitives": [
+          "trace.getTracer",
+          "trace.setSpan",
+          "context.active",
+          "context.with",
+          "metrics.getMeter",
+          "SpanKind",
+          "SpanStatusCode.ERROR"
+        ],
+        "range": ">=1.7.0 (optional peer)",
+        "spanEvents": [
+          "gen_ai.client.inference.operation.details"
+        ],
+        "spans": [
+          "chat {model} (CLIENT)",
+          "execute_tool {bareToolName} (INTERNAL)",
+          "invoke_agent {agentName} (CLIENT)"
+        ]
+      },
+      "zod": {
+        "primitives": [
+          "z.any",
+          "z.array",
+          "z.boolean",
+          "z.enum",
+          "z.number().int",
+          "z.number",
+          "z.object",
+          "z.string",
+          ".describe",
+          ".nullable",
+          ".optional"
+        ],
+        "range": "^3.25.0 || ^4.0.0"
+      }
+    }
+  },
+  "enrichmentMethod": "static regex class-member pass + manual source trace (no execution)",
+  "exportsBySubpath": {
+    ".": [
+      {
+        "inRootBarrel": true,
+        "kind": "constant",
+        "name": "COPILOT_DEFAULT_CANDIDATES",
+        "source": "src/runtime.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "class",
+        "name": "ClaudeAgentHarness",
+        "source": "src/harness.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "class",
+        "name": "ConfigError",
+        "source": "src/config.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "class",
+        "name": "ContextStore",
+        "source": "src/store.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "constant",
+        "name": "DEFAULT_BINARY_NAMES",
+        "source": "src/runtime.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "constant",
+        "name": "DEFAULT_CANDIDATES",
+        "source": "src/runtime.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "constant",
+        "name": "DEFAULT_ORDER",
+        "source": "src/runtime.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "constant",
+        "name": "DEFAULT_SYSTEM_DIRS",
+        "source": "src/runtime.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "constant",
+        "name": "EFFORT",
+        "source": "src/config.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "class",
+        "name": "EmptyPromptError",
+        "source": "src/harness.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "constant",
+        "name": "HOOK_NAMES",
+        "source": "src/hooks.mjs"
+      },
+      {
+        "aliasOf": "ClaudeAgentHarness",
+        "inRootBarrel": true,
+        "kind": "class",
+        "name": "Harness",
+        "source": "src/harness.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "class",
+        "name": "HookManager",
+        "source": "src/hooks.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "class",
+        "name": "Observability",
+        "source": "src/observability.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "constant",
+        "name": "PERMISSION_MODES",
+        "source": "src/config.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "constant",
+        "name": "REASONING_EFFORTS",
+        "source": "src/config.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "class",
+        "name": "StructuredOutputError",
+        "source": "src/structured.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "constant",
+        "name": "THINKING_TYPES",
+        "source": "src/config.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "class",
+        "name": "TokenBudget",
+        "source": "src/tokens.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "class",
+        "name": "TokenBudgetExceededError",
+        "source": "src/tokens.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "class",
+        "name": "UsageTracker",
+        "source": "src/usage.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "_setOtelApiForTests",
+        "source": "src/observability.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "analyzeRun",
+        "source": "src/tokens.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "analyzeRunAccurate",
+        "source": "src/tokens.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "assertUserMessage",
+        "source": "src/harness.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "buildQueryOptions",
+        "source": "src/config.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "buildRepairPrompt",
+        "source": "src/structured.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "buildStrictOutputDirective",
+        "source": "src/structured.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "buildStructuredPrompt",
+        "source": "src/structured.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "configFromEnv",
+        "source": "src/config.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "createHarness",
+        "source": "src/harness.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "createQuery",
+        "source": "src/runtime.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "defaultConfig",
+        "source": "src/config.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "dispatchQuery",
+        "source": "src/runtime.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "estimateMessagesTokens",
+        "source": "src/tokens.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "estimateTokens",
+        "source": "src/tokens.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "extractContent",
+        "source": "src/harness.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "extractJson",
+        "source": "src/structured.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "fallbackCreateSdkMcpServer",
+        "source": "src/runtime.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "fallbackTool",
+        "source": "src/runtime.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "findClaude",
+        "source": "src/runtime.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "findClaudeBinary",
+        "source": "src/runtime.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "findClosestModuleDir",
+        "source": "src/runtime.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "findCopilot",
+        "source": "src/runtime.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "findModule",
+        "source": "src/runtime.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "findNativeBinary",
+        "source": "src/runtime.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "formatSSE",
+        "source": "src/harness.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "genAiAttributes",
+        "source": "src/observability.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "inspectBinary",
+        "source": "src/runtime.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "jsonSchemaToZod",
+        "source": "src/runtime.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "jsonSchemaToZodShape",
+        "source": "src/runtime.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "loadConfig",
+        "source": "src/config.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "loadConfigFile",
+        "source": "src/config.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "loadOtelApi",
+        "source": "src/observability.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "loadSdkTooling",
+        "source": "src/runtime.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "mergeConfig",
+        "source": "src/config.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "nativeBinaryLocations",
+        "source": "src/runtime.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "packageRootFromEntry",
+        "source": "src/runtime.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "parseStructuredResponse",
+        "source": "src/structured.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "readManifestEntry",
+        "source": "src/runtime.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "renderContextPreamble",
+        "source": "src/harness.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "renderStructuredInput",
+        "source": "src/structured.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "resolveAnswerContent",
+        "source": "src/harness.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "resolveAuth",
+        "source": "src/runtime.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "resolveBinInfo",
+        "source": "src/runtime.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "resolveClaudeCodeExecutable",
+        "source": "src/runtime.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "resolveExecutablePath",
+        "source": "src/runtime.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "resolveModuleEntry",
+        "source": "src/runtime.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "resolveSystemPrompt",
+        "source": "src/config.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "telemetryConfigFor",
+        "source": "src/observability.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "validateConfig",
+        "source": "src/config.mjs"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "validateSchema",
+        "source": "src/structured.mjs"
+      }
+    ],
+    "./config": [
+      {
+        "inRootBarrel": true,
+        "kind": "class",
+        "name": "ConfigError"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "constant",
+        "name": "EFFORT"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "constant",
+        "name": "PERMISSION_MODES"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "constant",
+        "name": "REASONING_EFFORTS"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "constant",
+        "name": "THINKING_TYPES"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "buildQueryOptions"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "configFromEnv"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "defaultConfig"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "loadConfig"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "loadConfigFile"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "mergeConfig"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "resolveSystemPrompt"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "validateConfig"
+      }
+    ],
+    "./hooks": [
+      {
+        "inRootBarrel": true,
+        "kind": "constant",
+        "name": "HOOK_NAMES"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "class",
+        "name": "HookManager"
+      }
+    ],
+    "./observability": [
+      {
+        "inRootBarrel": true,
+        "kind": "class",
+        "name": "Observability"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "_setOtelApiForTests"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "genAiAttributes"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "loadOtelApi"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "telemetryConfigFor"
+      }
+    ],
+    "./runtime": [
+      {
+        "inRootBarrel": true,
+        "kind": "constant",
+        "name": "COPILOT_DEFAULT_CANDIDATES"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "constant",
+        "name": "DEFAULT_BINARY_NAMES"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "constant",
+        "name": "DEFAULT_CANDIDATES"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "constant",
+        "name": "DEFAULT_ORDER"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "constant",
+        "name": "DEFAULT_SYSTEM_DIRS"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "createQuery"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "dispatchQuery"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "fallbackCreateSdkMcpServer"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "fallbackTool"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "findClaude"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "findClaudeBinary"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "findClosestModuleDir"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "findCopilot"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "findModule"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "findNativeBinary"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "inspectBinary"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "jsonSchemaToZod"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "jsonSchemaToZodShape"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "loadSdkTooling"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "nativeBinaryLocations"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "packageRootFromEntry"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "readManifestEntry"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "resolveAuth"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "resolveBinInfo"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "resolveClaudeCodeExecutable"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "resolveExecutablePath"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "resolveModuleEntry"
+      }
+    ],
+    "./store": [
+      {
+        "inRootBarrel": true,
+        "kind": "class",
+        "name": "ContextStore"
+      }
+    ],
+    "./structured": [
+      {
+        "inRootBarrel": true,
+        "kind": "class",
+        "name": "StructuredOutputError"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "buildRepairPrompt"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "buildStrictOutputDirective"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "buildStructuredPrompt"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "extractJson"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "parseStructuredResponse"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "renderStructuredInput"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "validateSchema"
+      }
+    ],
+    "./tokens": [
+      {
+        "inRootBarrel": true,
+        "kind": "class",
+        "name": "TokenBudget"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "class",
+        "name": "TokenBudgetExceededError"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "analyzeRun"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "analyzeRunAccurate"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "estimateMessagesTokens"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "estimateTokens"
+      }
+    ],
+    "./usage": [
+      {
+        "inRootBarrel": true,
+        "kind": "class",
+        "name": "UsageTracker"
+      }
+    ]
+  },
+  "generatedAt": "2026-11-11T15:27:24.081509+00:00",
+  "method": "deterministic static AST & manifest analysis (zero SDK/network execution)",
+  "modules": {
+    "src/config.mjs": {
+      "classes": [
+        {
+          "exported": true,
+          "extends": "Error",
+          "instanceFields": [
+            "name"
+          ],
+          "members": [
+            {
+              "async": false,
+              "generator": false,
+              "kind": "constructor",
+              "name": "constructor",
+              "private": false,
+              "signature": "constructor(message)",
+              "static": false
+            }
+          ],
+          "name": "ConfigError"
+        }
+      ],
+      "constants": [
+        "EFFORT",
+        "PERMISSION_MODES",
+        "REASONING_EFFORTS",
+        "THINKING_TYPES"
+      ],
+      "emittedEvents": [],
+      "envVars": [
+        "ANTHROPIC_BASE_URL",
+        "CLAUDE_AGENT_EFFORT",
+        "CLAUDE_AGENT_EXECUTABLE",
+        "CLAUDE_AGENT_MODEL",
+        "CLAUDE_AGENT_PERMISSION_MODE",
+        "CLAUDE_AGENT_STORE_DIR",
+        "CLAUDE_AGENT_SYSTEM_PROMPT_FILE",
+        "CLAUDE_AGENT_TOKEN_BUDGET",
+        "LLM_SDK_MAX_TOKENS",
+        "LLM_SDK_MODEL",
+        "LLM_SDK_REASONING_EFFORT",
+        "LLM_SDK_STORE_DIR",
+        "LLM_SDK_SYSTEM_PROMPT_FILE",
+        "LLM_SDK_TOKEN_BUDGET",
+        "OTEL_EXPORTER_OTLP_ENDPOINT"
+      ],
+      "errors": [
+        "ConfigError"
+      ],
+      "exports": [
+        {
+          "kind": "class",
+          "name": "ConfigError"
+        },
+        {
+          "kind": "constant",
+          "name": "EFFORT"
+        },
+        {
+          "kind": "constant",
+          "name": "PERMISSION_MODES"
+        },
+        {
+          "kind": "constant",
+          "name": "REASONING_EFFORTS"
+        },
+        {
+          "kind": "constant",
+          "name": "THINKING_TYPES"
+        },
+        {
+          "kind": "function",
+          "name": "buildQueryOptions"
+        },
+        {
+          "kind": "function",
+          "name": "configFromEnv"
+        },
+        {
+          "kind": "function",
+          "name": "defaultConfig"
+        },
+        {
+          "kind": "function",
+          "name": "loadConfig"
+        },
+        {
+          "kind": "function",
+          "name": "loadConfigFile"
+        },
+        {
+          "kind": "function",
+          "name": "mergeConfig"
+        },
+        {
+          "kind": "function",
+          "name": "resolveSystemPrompt"
+        },
+        {
+          "kind": "function",
+          "name": "validateConfig"
+        }
+      ],
+      "file": "src/config.mjs",
+      "functions": [
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "defaultConfig",
+          "signature": "defaultConfig(env = process.env)"
+        },
+        {
+          "async": false,
+          "exported": false,
+          "generator": false,
+          "name": "isPlainObject",
+          "signature": "isPlainObject(v)"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "mergeConfig",
+          "signature": "mergeConfig(base, ...layers)"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "configFromEnv",
+          "signature": "configFromEnv(env = process.env)"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "loadConfigFile",
+          "signature": "loadConfigFile(file)"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "validateConfig",
+          "signature": "validateConfig(config)"
+        },
+        {
+          "async": false,
+          "exported": false,
+          "generator": false,
+          "name": "validateMcpServers",
+          "signature": "validateMcpServers(mcpServers, problems)"
+        },
+        {
+          "async": false,
+          "exported": false,
+          "generator": false,
+          "name": "validateAgents",
+          "signature": "validateAgents(agents, problems)"
+        },
+        {
+          "async": false,
+          "exported": false,
+          "generator": false,
+          "name": "validatePermissions",
+          "signature": "validatePermissions(permissions, problems)"
+        },
+        {
+          "async": false,
+          "exported": false,
+          "generator": false,
+          "name": "normalizeSharedKeys",
+          "signature": "normalizeSharedKeys(layer)"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "loadConfig",
+          "signature": "loadConfig(opts = {})"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "resolveSystemPrompt",
+          "signature": "resolveSystemPrompt(config)"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "buildQueryOptions",
+          "signature": "buildQueryOptions(config)"
+        }
+      ],
+      "imports": [
+        {
+          "source": "node:fs",
+          "specifiers": [
+            "fs"
+          ]
+        },
+        {
+          "source": "node:path",
+          "specifiers": [
+            "path"
+          ]
+        }
+      ],
+      "reExports": [],
+      "shapes": []
+    },
+    "src/harness.mjs": {
+      "classes": [
+        {
+          "exported": true,
+          "extends": "Error",
+          "instanceFields": [
+            "method",
+            "name"
+          ],
+          "members": [
+            {
+              "async": false,
+              "generator": false,
+              "kind": "constructor",
+              "name": "constructor",
+              "private": false,
+              "signature": "constructor(method = 'chat')",
+              "static": false
+            }
+          ],
+          "name": "EmptyPromptError"
+        },
+        {
+          "exported": true,
+          "extends": "EventEmitter",
+          "instanceFields": [
+            "_agentSpan",
+            "_createSdkMcpServer",
+            "_deps",
+            "_env",
+            "_pendingContext",
+            "_pendingFork",
+            "_pendingResume",
+            "_pendingToolCalls",
+            "_queryImpl",
+            "_sdkTool",
+            "_sessionId",
+            "_started",
+            "_toolVerdicts",
+            "_tools",
+            "_zod",
+            "budget",
+            "config",
+            "hooks",
+            "obs",
+            "store",
+            "tracker",
+            "usage"
+          ],
+          "members": [
+            {
+              "async": false,
+              "generator": false,
+              "kind": "constructor",
+              "name": "constructor",
+              "private": false,
+              "signature": "constructor(options = {}, deps = {})",
+              "static": false
+            },
+            {
+              "async": true,
+              "generator": false,
+              "kind": "method",
+              "name": "start",
+              "private": false,
+              "signature": "start()",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "getter",
+              "name": "sessionId",
+              "private": false,
+              "signature": "sessionId()",
+              "static": false
+            },
+            {
+              "async": true,
+              "generator": false,
+              "kind": "method",
+              "name": "stop",
+              "private": false,
+              "signature": "stop()",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "resumeSession",
+              "private": false,
+              "signature": "resumeSession(id, opts = {})",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "continueFrom",
+              "private": false,
+              "signature": "continueFrom(id, opts = {})",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "forkSession",
+              "private": false,
+              "signature": "forkSession(id, opts = {})",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "attachContext",
+              "private": false,
+              "signature": "attachContext(messages = [])",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "registerTool",
+              "private": false,
+              "signature": "registerTool(tool)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_jsonSchemaToZod",
+              "private": true,
+              "signature": "_jsonSchemaToZod(parameters = { type: 'object', properties: {} })",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_claimBridgedCall",
+              "private": true,
+              "signature": "_claimBridgedCall(bareName, toolUseId)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_wrapHandler",
+              "private": true,
+              "signature": "_wrapHandler(tool)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_toSdkTool",
+              "private": true,
+              "signature": "_toSdkTool(tool)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_buildMcpServers",
+              "private": true,
+              "signature": "_buildMcpServers()",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_buildAllowedTools",
+              "private": true,
+              "signature": "_buildAllowedTools()",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_matchesDeny",
+              "private": true,
+              "signature": "_matchesDeny(toolName)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_toolHookPayload",
+              "private": true,
+              "signature": "_toolHookPayload(toolName, args, toolUseId)",
+              "static": false
+            },
+            {
+              "async": true,
+              "generator": false,
+              "kind": "method",
+              "name": "_toolVerdictOnce",
+              "private": true,
+              "signature": "_toolVerdictOnce(toolName, args, toolUseId)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_buildCanUseTool",
+              "private": true,
+              "signature": "_buildCanUseTool()",
+              "static": false
+            },
+            {
+              "async": true,
+              "generator": false,
+              "kind": "method",
+              "name": "_preToolHook",
+              "private": true,
+              "signature": "_preToolHook(input = {})",
+              "static": false
+            },
+            {
+              "async": true,
+              "generator": false,
+              "kind": "method",
+              "name": "_postToolHook",
+              "private": true,
+              "signature": "_postToolHook(input = {})",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_buildNativeHooks",
+              "private": true,
+              "signature": "_buildNativeHooks()",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_resolveSystemPromptText",
+              "private": true,
+              "signature": "_resolveSystemPromptText()",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_buildOptions",
+              "private": true,
+              "signature": "_buildOptions(opts = {}, { streaming = false, systemPromptOverride } = {})",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_composePrompt",
+              "private": true,
+              "signature": "_composePrompt(prompt)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "preflight",
+              "private": false,
+              "signature": "preflight(prompt, opts = {})",
+              "static": false
+            },
+            {
+              "async": true,
+              "generator": false,
+              "kind": "method",
+              "name": "_gateOnBudget",
+              "private": true,
+              "signature": "_gateOnBudget(report)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_reconcileBudget",
+              "private": true,
+              "signature": "_reconcileBudget(runTotalTokens)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_onSdkMessage",
+              "private": true,
+              "signature": "_onSdkMessage(msg, state)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_captureSession",
+              "private": true,
+              "signature": "_captureSession(sessionId)",
+              "static": false
+            },
+            {
+              "async": true,
+              "generator": false,
+              "kind": "method",
+              "name": "chat",
+              "private": false,
+              "signature": "chat(prompt, opts = {})",
+              "static": false
+            },
+            {
+              "async": true,
+              "generator": false,
+              "kind": "method",
+              "name": "_withAgentSpan",
+              "private": true,
+              "signature": "_withAgentSpan(fn)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_responseModel",
+              "private": true,
+              "signature": "_responseModel(resultMsg)",
+              "static": false
+            },
+            {
+              "async": true,
+              "generator": false,
+              "kind": "method",
+              "name": "_chat",
+              "private": true,
+              "signature": "_chat(prompt, opts, agentSpan)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_mapPartial",
+              "private": true,
+              "signature": "_mapPartial(msg, state)",
+              "static": false
+            },
+            {
+              "async": true,
+              "generator": true,
+              "kind": "method",
+              "name": "stream",
+              "private": false,
+              "signature": "stream(prompt, opts = {})",
+              "static": false
+            },
+            {
+              "async": true,
+              "generator": true,
+              "kind": "method",
+              "name": "_stream",
+              "private": true,
+              "signature": "_stream(prompt, opts, agentSpan, onChatSpan)",
+              "static": false
+            },
+            {
+              "async": true,
+              "generator": false,
+              "kind": "method",
+              "name": "structured",
+              "private": false,
+              "signature": "structured(task, schema, opts = {})",
+              "static": false
+            },
+            {
+              "async": true,
+              "generator": false,
+              "kind": "method",
+              "name": "_structured",
+              "private": true,
+              "signature": "_structured(task, schema, opts)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "usageSummary",
+              "private": false,
+              "signature": "usageSummary()",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "usageReport",
+              "private": false,
+              "signature": "usageReport()",
+              "static": false
+            }
+          ],
+          "name": "ClaudeAgentHarness"
+        }
+      ],
+      "constants": [],
+      "emittedEvents": [
+        "budget:exceeded",
+        "budget:warn",
+        "delta",
+        "error:run",
+        "event",
+        "message",
+        "preflight",
+        "run:end",
+        "run:start",
+        "session:created",
+        "session:replayed",
+        "session:resumed",
+        "started",
+        "stopped",
+        "structured:invalid",
+        "structured:ok",
+        "subagent:activity",
+        "subagent:start",
+        "tool:call",
+        "tool:denied",
+        "tool:error",
+        "tool:result",
+        "usage:tokens"
+      ],
+      "envVars": [
+        "CLAUDE_CODE_USE_BEDROCK",
+        "CLAUDE_CODE_USE_VERTEX"
+      ],
+      "errors": [
+        "EmptyPromptError"
+      ],
+      "exports": [
+        {
+          "kind": "class",
+          "name": "ClaudeAgentHarness"
+        },
+        {
+          "kind": "class",
+          "name": "EmptyPromptError"
+        },
+        {
+          "kind": "function",
+          "name": "assertUserMessage"
+        },
+        {
+          "kind": "function",
+          "name": "createHarness"
+        },
+        {
+          "kind": "function",
+          "name": "extractContent"
+        },
+        {
+          "kind": "function",
+          "name": "formatSSE"
+        },
+        {
+          "kind": "function",
+          "name": "normalizeToolName"
+        },
+        {
+          "kind": "function",
+          "name": "renderContextPreamble"
+        },
+        {
+          "kind": "function",
+          "name": "resolveAnswerContent"
+        }
+      ],
+      "file": "src/harness.mjs",
+      "functions": [
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "formatSSE",
+          "signature": "formatSSE(item = {})"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "assertUserMessage",
+          "signature": "assertUserMessage(message, method = 'chat')"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "renderContextPreamble",
+          "signature": "renderContextPreamble(messages = [])"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "extractContent",
+          "signature": "extractContent(content = [])"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "resolveAnswerContent",
+          "signature": "resolveAnswerContent(content = [], fallback = undefined)"
+        },
+        {
+          "async": false,
+          "exported": false,
+          "generator": false,
+          "name": "usageFields",
+          "signature": "usageFields(u = {})"
+        },
+        {
+          "async": false,
+          "exported": false,
+          "generator": false,
+          "name": "toToolResultText",
+          "signature": "toToolResultText(result)"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "normalizeToolName",
+          "signature": "normalizeToolName(name)"
+        },
+        {
+          "async": false,
+          "exported": false,
+          "generator": false,
+          "name": "toolTypeFor",
+          "signature": "toolTypeFor(toolName)"
+        },
+        {
+          "async": false,
+          "exported": false,
+          "generator": false,
+          "name": "providerNameFor",
+          "signature": "providerNameFor(env = {})"
+        },
+        {
+          "async": false,
+          "exported": false,
+          "generator": false,
+          "name": "cloneArgs",
+          "signature": "cloneArgs(args)"
+        },
+        {
+          "async": false,
+          "exported": false,
+          "generator": false,
+          "name": "argsChanged",
+          "signature": "argsChanged(before, after)"
+        },
+        {
+          "async": false,
+          "exported": false,
+          "generator": false,
+          "name": "matchesPattern",
+          "signature": "matchesPattern(name, pattern)"
+        },
+        {
+          "async": true,
+          "exported": true,
+          "generator": false,
+          "name": "createHarness",
+          "signature": "createHarness(options = {}, deps = {})"
+        }
+      ],
+      "imports": [
+        {
+          "source": "node:events",
+          "specifiers": [
+            "EventEmitter"
+          ]
+        },
+        {
+          "source": "./config.mjs",
+          "specifiers": [
+            "loadConfig",
+            "resolveSystemPrompt",
+            "buildQueryOptions"
+          ]
+        },
+        {
+          "source": "./runtime.mjs",
+          "specifiers": [
+            "dispatchQuery",
+            "loadSdkTooling",
+            "fallbackTool",
+            "fallbackCreateSdkMcpServer",
+            "jsonSchemaToZodShape"
+          ]
+        },
+        {
+          "source": "./tokens.mjs",
+          "specifiers": [
+            "TokenBudget",
+            "analyzeRun"
+          ]
+        },
+        {
+          "source": "./usage.mjs",
+          "specifiers": [
+            "UsageTracker"
+          ]
+        },
+        {
+          "source": "./hooks.mjs",
+          "specifiers": [
+            "HookManager"
+          ]
+        },
+        {
+          "source": "./store.mjs",
+          "specifiers": [
+            "ContextStore"
+          ]
+        },
+        {
+          "source": "./observability.mjs",
+          "specifiers": [
+            "Observability"
+          ]
+        },
+        {
+          "source": "./structured.mjs",
+          "specifiers": [
+            "StructuredOutputError",
+            "validateSchema",
+            "buildStructuredPrompt",
+            "buildRepairPrompt",
+            "buildStrictOutputDirective",
+            "parseStructuredResponse"
+          ]
+        }
+      ],
+      "reExports": [],
+      "shapes": []
+    },
+    "src/hooks.mjs": {
+      "classes": [
+        {
+          "exported": true,
+          "extends": null,
+          "instanceFields": [
+            "_hooks"
+          ],
+          "members": [
+            {
+              "async": false,
+              "generator": false,
+              "kind": "constructor",
+              "name": "constructor",
+              "private": false,
+              "signature": "constructor(initial = {})",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "register",
+              "private": false,
+              "signature": "register(name, fn)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "count",
+              "private": false,
+              "signature": "count(name)",
+              "static": false
+            },
+            {
+              "async": true,
+              "generator": false,
+              "kind": "method",
+              "name": "run",
+              "private": false,
+              "signature": "run(name, payload)",
+              "static": false
+            },
+            {
+              "async": true,
+              "generator": false,
+              "kind": "method",
+              "name": "toolCallVerdict",
+              "private": false,
+              "signature": "toolCallVerdict(payload)",
+              "static": false
+            }
+          ],
+          "name": "HookManager"
+        }
+      ],
+      "constants": [
+        "HOOK_NAMES"
+      ],
+      "emittedEvents": [],
+      "envVars": [],
+      "errors": [],
+      "exports": [
+        {
+          "kind": "constant",
+          "name": "HOOK_NAMES"
+        },
+        {
+          "kind": "class",
+          "name": "HookManager"
+        }
+      ],
+      "file": "src/hooks.mjs",
+      "functions": [],
+      "imports": [],
+      "reExports": [],
+      "shapes": []
+    },
+    "src/index.mjs": {
+      "classes": [],
+      "constants": [],
+      "emittedEvents": [],
+      "envVars": [],
+      "errors": [],
+      "exports": [],
+      "file": "src/index.mjs",
+      "functions": [],
+      "imports": [
+        {
+          "source": "llm-sdk-claude-agent",
+          "specifiers": [
+            "createHarness"
+          ]
+        }
+      ],
+      "reExports": [
+        {
+          "name": "ClaudeAgentHarness",
+          "source": "./harness.mjs"
+        },
+        {
+          "name": "Harness",
+          "source": "./harness.mjs"
+        },
+        {
+          "name": "createHarness",
+          "source": "./harness.mjs"
+        },
+        {
+          "name": "formatSSE",
+          "source": "./harness.mjs"
+        },
+        {
+          "name": "renderContextPreamble",
+          "source": "./harness.mjs"
+        },
+        {
+          "name": "extractContent",
+          "source": "./harness.mjs"
+        },
+        {
+          "name": "resolveAnswerContent",
+          "source": "./harness.mjs"
+        },
+        {
+          "name": "assertUserMessage",
+          "source": "./harness.mjs"
+        },
+        {
+          "name": "EmptyPromptError",
+          "source": "./harness.mjs"
+        },
+        {
+          "name": "*",
+          "source": "./config.mjs"
+        },
+        {
+          "name": "*",
+          "source": "./runtime.mjs"
+        },
+        {
+          "name": "*",
+          "source": "./tokens.mjs"
+        },
+        {
+          "name": "*",
+          "source": "./usage.mjs"
+        },
+        {
+          "name": "*",
+          "source": "./store.mjs"
+        },
+        {
+          "name": "*",
+          "source": "./hooks.mjs"
+        },
+        {
+          "name": "*",
+          "source": "./structured.mjs"
+        },
+        {
+          "name": "*",
+          "source": "./observability.mjs"
+        }
+      ],
+      "shapes": []
+    },
+    "src/observability.mjs": {
+      "classes": [
+        {
+          "exported": true,
+          "extends": null,
+          "instanceFields": [
+            "_api",
+            "_budgetSnapshot",
+            "_contextSnapshot",
+            "_defaultProvider",
+            "_instruments",
+            "_tracer",
+            "config",
+            "enabled"
+          ],
+          "members": [
+            {
+              "async": false,
+              "generator": false,
+              "kind": "constructor",
+              "name": "constructor",
+              "private": false,
+              "signature": "constructor(obsConfig = {}, deps = {})",
+              "static": false
+            },
+            {
+              "async": true,
+              "generator": false,
+              "kind": "method",
+              "name": "init",
+              "private": false,
+              "signature": "init()",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "startSpan",
+              "private": false,
+              "signature": "startSpan(name, attributes = {}, opts = {})",
+              "static": false
+            },
+            {
+              "async": true,
+              "generator": false,
+              "kind": "method",
+              "name": "withSpan",
+              "private": false,
+              "signature": "withSpan(name, attributes, fn, opts = {})",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "getter",
+              "name": "providerName",
+              "private": false,
+              "signature": "providerName()",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "getter",
+              "name": "captureContent",
+              "private": false,
+              "signature": "captureContent()",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "invokeAgentSpan",
+              "private": false,
+              "signature": "invokeAgentSpan(info, fn)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "chatSpan",
+              "private": false,
+              "signature": "chatSpan(info, fn)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "toolSpan",
+              "private": false,
+              "signature": "toolSpan(info, fn)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "startInvokeAgentSpan",
+              "private": false,
+              "signature": "startInvokeAgentSpan(info)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "startChatSpan",
+              "private": false,
+              "signature": "startChatSpan(info)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "startToolSpan",
+              "private": false,
+              "signature": "startToolSpan(info)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "endSpan",
+              "private": false,
+              "signature": "endSpan(span, error)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_invokeAgentSpec",
+              "private": true,
+              "signature": "_invokeAgentSpec({ agentName, sessionId, model } = {})",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_chatSpec",
+              "private": true,
+              "signature": "_chatSpec({ model, sessionId } = {})",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_toolSpec",
+              "private": true,
+              "signature": "_toolSpec({ toolName, toolUseId, toolType = 'custom' } = {})",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "setGenAiUsage",
+              "private": false,
+              "signature": "setGenAiUsage(span, usage = {}, { responseModel, ttftMs } = {})",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "recordContent",
+              "private": false,
+              "signature": "recordContent(span, { input, output } = {})",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "recordRequestStart",
+              "private": false,
+              "signature": "recordRequestStart(attrs = {})",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "recordRequestEnd",
+              "private": false,
+              "signature": "recordRequestEnd({ durationMs, ttftMs, model } = {})",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "recordTokens",
+              "private": false,
+              "signature": "recordTokens({ inputTokens = 0, outputTokens = 0, reasoningTokens = 0, cacheReadTokens = 0, cacheWriteTokens = 0, model } = {})",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "recordToolCall",
+              "private": false,
+              "signature": "recordToolCall({ tool, outcome, durationMs } = {})",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "recordError",
+              "private": false,
+              "signature": "recordError(kind, attrs = {})",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "observeBudget",
+              "private": false,
+              "signature": "observeBudget(snapshot)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "observeContextWindow",
+              "private": false,
+              "signature": "observeContextWindow(usageInfo)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "ingest",
+              "private": false,
+              "signature": "ingest(record, raw = {})",
+              "static": false
+            }
+          ],
+          "name": "Observability"
+        }
+      ],
+      "constants": [],
+      "emittedEvents": [],
+      "envVars": [],
+      "errors": [],
+      "exports": [
+        {
+          "kind": "class",
+          "name": "Observability"
+        },
+        {
+          "kind": "function",
+          "name": "_setOtelApiForTests"
+        },
+        {
+          "kind": "function",
+          "name": "genAiAttributes"
+        },
+        {
+          "kind": "function",
+          "name": "loadOtelApi"
+        },
+        {
+          "kind": "function",
+          "name": "telemetryConfigFor"
+        }
+      ],
+      "file": "src/observability.mjs",
+      "functions": [
+        {
+          "async": true,
+          "exported": true,
+          "generator": false,
+          "name": "loadOtelApi",
+          "signature": "loadOtelApi()"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "_setOtelApiForTests",
+          "signature": "_setOtelApiForTests(api)"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "telemetryConfigFor",
+          "signature": "telemetryConfigFor(obsConfig)"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "genAiAttributes",
+          "signature": "genAiAttributes(attrs = {})"
+        },
+        {
+          "async": false,
+          "exported": false,
+          "generator": false,
+          "name": "noop",
+          "signature": "noop"
+        },
+        {
+          "async": false,
+          "exported": false,
+          "generator": false,
+          "name": "add",
+          "signature": "add"
+        }
+      ],
+      "imports": [],
+      "reExports": [],
+      "shapes": []
+    },
+    "src/runtime.mjs": {
+      "classes": [],
+      "constants": [
+        "COPILOT_DEFAULT_CANDIDATES",
+        "DEFAULT_BINARY_NAMES",
+        "DEFAULT_CANDIDATES",
+        "DEFAULT_ORDER",
+        "DEFAULT_SYSTEM_DIRS"
+      ],
+      "emittedEvents": [],
+      "envVars": [
+        "ANTHROPIC_API_KEY",
+        "CLAUDE_AGENT_EXECUTABLE",
+        "CLAUDE_AGENT_USE_CLI_LOGIN",
+        "CLAUDE_CODE_OAUTH_TOKEN",
+        "CLAUDE_CODE_USE_BEDROCK",
+        "CLAUDE_CODE_USE_VERTEX",
+        "HOME",
+        "PATH",
+        "USERPROFILE"
+      ],
+      "errors": [],
+      "exports": [
+        {
+          "kind": "constant",
+          "name": "COPILOT_DEFAULT_CANDIDATES"
+        },
+        {
+          "kind": "constant",
+          "name": "DEFAULT_BINARY_NAMES"
+        },
+        {
+          "kind": "constant",
+          "name": "DEFAULT_CANDIDATES"
+        },
+        {
+          "kind": "constant",
+          "name": "DEFAULT_ORDER"
+        },
+        {
+          "kind": "constant",
+          "name": "DEFAULT_SYSTEM_DIRS"
+        },
+        {
+          "kind": "function",
+          "name": "createQuery"
+        },
+        {
+          "kind": "function",
+          "name": "dispatchQuery"
+        },
+        {
+          "kind": "function",
+          "name": "fallbackCreateSdkMcpServer"
+        },
+        {
+          "kind": "function",
+          "name": "fallbackTool"
+        },
+        {
+          "kind": "function",
+          "name": "findClaude"
+        },
+        {
+          "kind": "function",
+          "name": "findClaudeBinary"
+        },
+        {
+          "kind": "function",
+          "name": "findClosestModuleDir"
+        },
+        {
+          "kind": "function",
+          "name": "findCopilot"
+        },
+        {
+          "kind": "function",
+          "name": "findModule"
+        },
+        {
+          "kind": "function",
+          "name": "findNativeBinary"
+        },
+        {
+          "kind": "function",
+          "name": "inspectBinary"
+        },
+        {
+          "kind": "function",
+          "name": "jsonSchemaToZod"
+        },
+        {
+          "kind": "function",
+          "name": "jsonSchemaToZodShape"
+        },
+        {
+          "kind": "function",
+          "name": "loadSdkTooling"
+        },
+        {
+          "kind": "function",
+          "name": "nativeBinaryLocations"
+        },
+        {
+          "kind": "function",
+          "name": "packageRootFromEntry"
+        },
+        {
+          "kind": "function",
+          "name": "readManifestEntry"
+        },
+        {
+          "kind": "function",
+          "name": "resolveAuth"
+        },
+        {
+          "kind": "function",
+          "name": "resolveBinInfo"
+        },
+        {
+          "kind": "function",
+          "name": "resolveClaudeCodeExecutable"
+        },
+        {
+          "kind": "function",
+          "name": "resolveExecutablePath"
+        },
+        {
+          "kind": "function",
+          "name": "resolveModuleEntry"
+        }
+      ],
+      "file": "src/runtime.mjs",
+      "functions": [
+        {
+          "async": false,
+          "exported": false,
+          "generator": false,
+          "name": "isDir",
+          "signature": "isDir(p)"
+        },
+        {
+          "async": false,
+          "exported": false,
+          "generator": false,
+          "name": "isFile",
+          "signature": "isFile(p)"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "readManifestEntry",
+          "signature": "readManifestEntry(dir)"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "resolveModuleEntry",
+          "signature": "resolveModuleEntry(moduleName, opts = {})"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "packageRootFromEntry",
+          "signature": "packageRootFromEntry(moduleName, entry, opts = {})"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "findClosestModuleDir",
+          "signature": "findClosestModuleDir(moduleName, opts = {})"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "resolveBinInfo",
+          "signature": "resolveBinInfo(moduleName, dir)"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "resolveClaudeCodeExecutable",
+          "signature": "resolveClaudeCodeExecutable(moduleName, dir)"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "findModule",
+          "signature": "findModule(candidates, opts = {})"
+        },
+        {
+          "async": false,
+          "exported": false,
+          "generator": false,
+          "name": "normalizeCandidates",
+          "signature": "normalizeCandidates(opts, defaults)"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "findClaude",
+          "signature": "findClaude(opts = {})"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "findCopilot",
+          "signature": "findCopilot(opts = {})"
+        },
+        {
+          "async": false,
+          "exported": false,
+          "generator": false,
+          "name": "binaryNameVariants",
+          "signature": "binaryNameVariants(name, platform)"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "nativeBinaryLocations",
+          "signature": "nativeBinaryLocations(opts = {})"
+        },
+        {
+          "async": false,
+          "exported": false,
+          "generator": false,
+          "name": "isExecutableFile",
+          "signature": "isExecutableFile(p, platform = process.platform)"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "inspectBinary",
+          "signature": "inspectBinary(p, opts = {})"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "findNativeBinary",
+          "signature": "findNativeBinary(opts = {})"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "findClaudeBinary",
+          "signature": "findClaudeBinary(opts = {})"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "resolveExecutablePath",
+          "signature": "resolveExecutablePath({ config = {}, env = process.env, fromDir, required = true } = {})"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "resolveAuth",
+          "signature": "resolveAuth(env = process.env, { required = true } = {})"
+        },
+        {
+          "async": true,
+          "exported": false,
+          "generator": false,
+          "name": "loadRealQuery",
+          "signature": "loadRealQuery()"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "fallbackTool",
+          "signature": "fallbackTool(name, description, inputSchema, handler)"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "fallbackCreateSdkMcpServer",
+          "signature": "fallbackCreateSdkMcpServer({ name = 'harness', version = '0.1.0', tools = [] } = {})"
+        },
+        {
+          "async": true,
+          "exported": true,
+          "generator": false,
+          "name": "loadSdkTooling",
+          "signature": "loadSdkTooling()"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "jsonSchemaToZod",
+          "signature": "jsonSchemaToZod(z, node = {})"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "jsonSchemaToZodShape",
+          "signature": "jsonSchemaToZodShape(z, schema = {})"
+        },
+        {
+          "async": true,
+          "exported": true,
+          "generator": true,
+          "name": "dispatchQuery",
+          "signature": "dispatchQuery({ prompt, options = {}, queryImpl, env = process.env, fromDir } = {})"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "createQuery",
+          "signature": "createQuery(config, { queryImpl, env = process.env, abortController, fromDir } = {})"
+        },
+        {
+          "async": true,
+          "exported": false,
+          "generator": true,
+          "name": "runReal",
+          "signature": "runReal(prompt, opts)"
+        },
+        {
+          "async": false,
+          "exported": false,
+          "generator": false,
+          "name": "run",
+          "signature": "run"
+        }
+      ],
+      "imports": [
+        {
+          "source": "node:fs",
+          "specifiers": [
+            "fs"
+          ]
+        },
+        {
+          "source": "node:path",
+          "specifiers": [
+            "path"
+          ]
+        },
+        {
+          "source": "node:module",
+          "specifiers": [
+            "createRequire"
+          ]
+        },
+        {
+          "source": "node:url",
+          "specifiers": [
+            "fileURLToPath"
+          ]
+        },
+        {
+          "source": "./config.mjs",
+          "specifiers": [
+            "buildQueryOptions"
+          ]
+        }
+      ],
+      "reExports": [],
+      "shapes": [
+        {
+          "exported": false,
+          "kind": "type",
+          "name": "McpServerConfig"
+        }
+      ]
+    },
+    "src/store.mjs": {
+      "classes": [
+        {
+          "exported": true,
+          "extends": null,
+          "instanceFields": [
+            "directory"
+          ],
+          "members": [
+            {
+              "async": false,
+              "generator": false,
+              "kind": "constructor",
+              "name": "constructor",
+              "private": false,
+              "signature": "constructor(opts = {})",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_ensureDir",
+              "private": true,
+              "signature": "_ensureDir()",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_file",
+              "private": true,
+              "signature": "_file(sessionId, ext)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "saveExchange",
+              "private": false,
+              "signature": "saveExchange(sessionId, exchange)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "load",
+              "private": false,
+              "signature": "load(sessionId)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "meta",
+              "private": false,
+              "signature": "meta(sessionId)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "list",
+              "private": false,
+              "signature": "list()",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "latestSessionId",
+              "private": false,
+              "signature": "latestSessionId()",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "asContextMessages",
+              "private": false,
+              "signature": "asContextMessages(sessionId)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "remove",
+              "private": false,
+              "signature": "remove(sessionId)",
+              "static": false
+            }
+          ],
+          "name": "ContextStore"
+        }
+      ],
+      "constants": [],
+      "emittedEvents": [],
+      "envVars": [],
+      "errors": [],
+      "exports": [
+        {
+          "kind": "class",
+          "name": "ContextStore"
+        }
+      ],
+      "file": "src/store.mjs",
+      "functions": [
+        {
+          "async": false,
+          "exported": false,
+          "generator": false,
+          "name": "sanitizeId",
+          "signature": "sanitizeId(id)"
+        }
+      ],
+      "imports": [
+        {
+          "source": "node:fs",
+          "specifiers": [
+            "fs"
+          ]
+        },
+        {
+          "source": "node:path",
+          "specifiers": [
+            "path"
+          ]
+        }
+      ],
+      "reExports": [],
+      "shapes": []
+    },
+    "src/structured.mjs": {
+      "classes": [
+        {
+          "exported": true,
+          "extends": "Error",
+          "instanceFields": [
+            "name"
+          ],
+          "members": [
+            {
+              "async": false,
+              "generator": false,
+              "kind": "constructor",
+              "name": "constructor",
+              "private": false,
+              "signature": "constructor(message, details = {})",
+              "static": false
+            }
+          ],
+          "name": "StructuredOutputError"
+        }
+      ],
+      "constants": [],
+      "emittedEvents": [],
+      "envVars": [],
+      "errors": [
+        "StructuredOutputError"
+      ],
+      "exports": [
+        {
+          "kind": "class",
+          "name": "StructuredOutputError"
+        },
+        {
+          "kind": "function",
+          "name": "buildRepairPrompt"
+        },
+        {
+          "kind": "function",
+          "name": "buildStrictOutputDirective"
+        },
+        {
+          "kind": "function",
+          "name": "buildStructuredPrompt"
+        },
+        {
+          "kind": "function",
+          "name": "extractJson"
+        },
+        {
+          "kind": "function",
+          "name": "parseStructuredResponse"
+        },
+        {
+          "kind": "function",
+          "name": "renderStructuredInput"
+        },
+        {
+          "kind": "function",
+          "name": "validateSchema"
+        }
+      ],
+      "file": "src/structured.mjs",
+      "functions": [
+        {
+          "async": false,
+          "exported": false,
+          "generator": false,
+          "name": "typeOf",
+          "signature": "typeOf(value)"
+        },
+        {
+          "async": false,
+          "exported": false,
+          "generator": false,
+          "name": "typeMatches",
+          "signature": "typeMatches(declared, actual)"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "validateSchema",
+          "signature": "validateSchema(value, schema, pathPrefix = '$')"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "extractJson",
+          "signature": "extractJson(text)"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "renderStructuredInput",
+          "signature": "renderStructuredInput(input, label = 'input')"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "buildStructuredPrompt",
+          "signature": "buildStructuredPrompt({ task, input, schema, label })"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "buildRepairPrompt",
+          "signature": "buildRepairPrompt({ errors, schema })"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "buildStrictOutputDirective",
+          "signature": "buildStrictOutputDirective(schema)"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "parseStructuredResponse",
+          "signature": "parseStructuredResponse(text, schema)"
+        }
+      ],
+      "imports": [],
+      "reExports": [],
+      "shapes": []
+    },
+    "src/tokens.mjs": {
+      "classes": [
+        {
+          "exported": true,
+          "extends": "Error",
+          "instanceFields": [
+            "name"
+          ],
+          "members": [
+            {
+              "async": false,
+              "generator": false,
+              "kind": "constructor",
+              "name": "constructor",
+              "private": false,
+              "signature": "constructor(message, details = {})",
+              "static": false
+            }
+          ],
+          "name": "TokenBudgetExceededError"
+        },
+        {
+          "exported": true,
+          "extends": null,
+          "instanceFields": [
+            "_warned",
+            "enforcement",
+            "maxTokens",
+            "used",
+            "warnAtPercent"
+          ],
+          "members": [
+            {
+              "async": false,
+              "generator": false,
+              "kind": "constructor",
+              "name": "constructor",
+              "private": false,
+              "signature": "constructor(opts = {})",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "getter",
+              "name": "remaining",
+              "private": false,
+              "signature": "remaining()",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "getter",
+              "name": "utilizationPercent",
+              "private": false,
+              "signature": "utilizationPercent()",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "record",
+              "private": false,
+              "signature": "record(tokens)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "wouldExceed",
+              "private": false,
+              "signature": "wouldExceed(estimate)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "checkOrThrow",
+              "private": false,
+              "signature": "checkOrThrow(estimate, context = {})",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "snapshot",
+              "private": false,
+              "signature": "snapshot()",
+              "static": false
+            }
+          ],
+          "name": "TokenBudget"
+        }
+      ],
+      "constants": [],
+      "emittedEvents": [],
+      "envVars": [],
+      "errors": [
+        "TokenBudgetExceededError"
+      ],
+      "exports": [
+        {
+          "kind": "class",
+          "name": "TokenBudget"
+        },
+        {
+          "kind": "class",
+          "name": "TokenBudgetExceededError"
+        },
+        {
+          "kind": "function",
+          "name": "analyzeRun"
+        },
+        {
+          "kind": "function",
+          "name": "analyzeRunAccurate"
+        },
+        {
+          "kind": "function",
+          "name": "estimateMessagesTokens"
+        },
+        {
+          "kind": "function",
+          "name": "estimateTokens"
+        }
+      ],
+      "file": "src/tokens.mjs",
+      "functions": [
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "estimateTokens",
+          "signature": "estimateTokens(text)"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "estimateMessagesTokens",
+          "signature": "estimateMessagesTokens(messages = [])"
+        },
+        {
+          "async": false,
+          "exported": false,
+          "generator": false,
+          "name": "buildReport",
+          "signature": "buildReport(breakdown, budget)"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "analyzeRun",
+          "signature": "analyzeRun(input, budget)"
+        },
+        {
+          "async": false,
+          "exported": true,
+          "generator": false,
+          "name": "analyzeRunAccurate",
+          "signature": "analyzeRunAccurate(clientOrInput, inputOrBudget, maybeBudget)"
+        }
+      ],
+      "imports": [],
+      "reExports": [],
+      "shapes": []
+    },
+    "src/usage.mjs": {
+      "classes": [
+        {
+          "exported": true,
+          "extends": null,
+          "instanceFields": [
+            "_completed",
+            "_interim",
+            "_seenMessageIds",
+            "_seenSubagentMessageIds",
+            "apiCalls",
+            "contextWindow",
+            "cost",
+            "errors",
+            "lastRunTokens",
+            "latency",
+            "models",
+            "numTurns",
+            "subagents",
+            "tokens",
+            "tools"
+          ],
+          "members": [
+            {
+              "async": false,
+              "generator": false,
+              "kind": "constructor",
+              "name": "constructor",
+              "private": false,
+              "signature": "constructor()",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_emptyTokens",
+              "private": true,
+              "signature": "_emptyTokens()",
+              "static": true
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "reset",
+              "private": false,
+              "signature": "reset()",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_syncLiveTotals",
+              "private": true,
+              "signature": "_syncLiveTotals()",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_model",
+              "private": true,
+              "signature": "_model(name)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_tool",
+              "private": true,
+              "signature": "_tool(name)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_subagent",
+              "private": true,
+              "signature": "_subagent(key)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_usageFields",
+              "private": true,
+              "signature": "_usageFields(u = {})",
+              "static": true
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_recomputeTotal",
+              "private": true,
+              "signature": "_recomputeTotal()",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "ingestStepUsage",
+              "private": false,
+              "signature": "ingestStepUsage(assistantMessage)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "ingestResult",
+              "private": false,
+              "signature": "ingestResult(result, meta = {})",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "ingestSubagent",
+              "private": false,
+              "signature": "ingestSubagent({ parentToolUseId, usage, messageId } = {})",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "ingestToolCall",
+              "private": false,
+              "signature": "ingestToolCall({ name = 'unknown', success = true, durationMs = 0, denied = false } = {})",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "ingestError",
+              "private": false,
+              "signature": "ingestError({ status = null, message = '' } = {})",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "ingestSessionError",
+              "private": false,
+              "signature": "ingestSessionError(message)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "ingestContextWindow",
+              "private": false,
+              "signature": "ingestContextWindow(info)",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "_stats",
+              "private": true,
+              "signature": "_stats(values)",
+              "static": true
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "summary",
+              "private": false,
+              "signature": "summary()",
+              "static": false
+            },
+            {
+              "async": false,
+              "generator": false,
+              "kind": "method",
+              "name": "report",
+              "private": false,
+              "signature": "report()",
+              "static": false
+            }
+          ],
+          "name": "UsageTracker"
+        }
+      ],
+      "constants": [],
+      "emittedEvents": [],
+      "envVars": [],
+      "errors": [],
+      "exports": [
+        {
+          "kind": "class",
+          "name": "UsageTracker"
+        }
+      ],
+      "file": "src/usage.mjs",
+      "functions": [
+        {
+          "async": false,
+          "exported": false,
+          "generator": false,
+          "name": "pct",
+          "signature": "pct"
+        }
+      ],
+      "imports": [],
+      "reExports": [],
+      "shapes": []
+    }
+  },
+  "nonSubpathModules": {
+    "src/harness.mjs": [
+      {
+        "inRootBarrel": true,
+        "kind": "class",
+        "name": "ClaudeAgentHarness"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "class",
+        "name": "EmptyPromptError"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "assertUserMessage"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "createHarness"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "extractContent"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "formatSSE"
+      },
+      {
+        "inRootBarrel": false,
+        "kind": "function",
+        "name": "normalizeToolName"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "renderContextPreamble"
+      },
+      {
+        "inRootBarrel": true,
+        "kind": "function",
+        "name": "resolveAnswerContent"
+      }
+    ]
+  },
+  "package": {
+    "dependencies": {
+      "@anthropic-ai/claude-agent-sdk": "^0.1.0",
+      "zod": "^3.25.0 || ^4.0.0"
+    },
+    "ecosystem": "nodejs",
+    "engines": {
+      "node": ">=20.6"
+    },
+    "exports": {
+      ".": "./src/index.mjs",
+      "./config": "./src/config.mjs",
+      "./hooks": "./src/hooks.mjs",
+      "./observability": "./src/observability.mjs",
+      "./runtime": "./src/runtime.mjs",
+      "./store": "./src/store.mjs",
+      "./structured": "./src/structured.mjs",
+      "./tokens": "./src/tokens.mjs",
+      "./usage": "./src/usage.mjs"
+    },
+    "main": "src/index.mjs",
+    "name": "llm-sdk-claude-agent",
+    "peerDependencies": {
+      "@opentelemetry/api": ">=1.7.0"
+    },
+    "type": "module",
+    "version": "0.1.0"
+  },
+  "summary": {
+    "envVarsDiscovered": [
+      "ANTHROPIC_API_KEY",
+      "ANTHROPIC_BASE_URL",
+      "CLAUDE_AGENT_EFFORT",
+      "CLAUDE_AGENT_EXECUTABLE",
+      "CLAUDE_AGENT_MODEL",
+      "CLAUDE_AGENT_PERMISSION_MODE",
+      "CLAUDE_AGENT_STORE_DIR",
+      "CLAUDE_AGENT_SYSTEM_PROMPT_FILE",
+      "CLAUDE_AGENT_TOKEN_BUDGET",
+      "CLAUDE_AGENT_USE_CLI_LOGIN",
+      "CLAUDE_CODE_OAUTH_TOKEN",
+      "CLAUDE_CODE_USE_BEDROCK",
+      "CLAUDE_CODE_USE_VERTEX",
+      "HOME",
+      "LLM_SDK_MAX_TOKENS",
+      "LLM_SDK_MODEL",
+      "LLM_SDK_REASONING_EFFORT",
+      "LLM_SDK_STORE_DIR",
+      "LLM_SDK_SYSTEM_PROMPT_FILE",
+      "LLM_SDK_TOKEN_BUDGET",
+      "OTEL_EXPORTER_OTLP_ENDPOINT",
+      "PATH",
+      "USERPROFILE"
+    ],
+    "errorsDiscovered": [
+      "ConfigError",
+      "EmptyPromptError",
+      "StructuredOutputError",
+      "TokenBudgetExceededError"
+    ],
+    "eventsDiscovered": [
+      "budget:exceeded",
+      "budget:warn",
+      "delta",
+      "error:run",
+      "event",
+      "message",
+      "preflight",
+      "run:end",
+      "run:start",
+      "session:created",
+      "session:replayed",
+      "session:resumed",
+      "started",
+      "stopped",
+      "structured:invalid",
+      "structured:ok",
+      "subagent:activity",
+      "subagent:start",
+      "tool:call",
+      "tool:denied",
+      "tool:error",
+      "tool:result",
+      "usage:tokens"
+    ],
+    "totalFilesAnalyzed": 10
+  }
+}
