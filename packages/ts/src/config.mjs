@@ -50,6 +50,7 @@ export function defaultConfig(env = process.env) {
     permissionMode: 'default',
     allowedTools: [],
     disallowedTools: [],
+    tools: null,                     // built-in tool availability (string[] | preset); null = SDK default
     maxTurns: 10,
 
     // --- runtime wiring ---
@@ -62,6 +63,7 @@ export function defaultConfig(env = process.env) {
 
     // --- extensibility (Epic 04) ---
     agents: {},                      // { name: AgentDefinition } → options.agents
+    plugins: [],                     // local plugin dirs (string | { type:'local', path }) → options.plugins
     permissions: { allow: [], deny: [] }, // canUseTool policy patterns
     autoAllowMcp: false,             // auto-allowlist mcp__<server>__* per configured server
     nativeHooks: {},                 // raw options.hooks matchers concatenated onto the bridge
@@ -231,6 +233,8 @@ export function validateConfig(config) {
   if (config.systemPromptFile && !fs.existsSync(config.systemPromptFile)) {
     problems.push(`systemPromptFile does not exist: ${config.systemPromptFile}`);
   }
+  validateTools(config.tools, problems);
+  validatePlugins(config.plugins, problems);
   validateMcpServers(config.mcpServers, problems);
   validateAgents(config.agents, problems);
   validatePermissions(config.permissions, problems);
@@ -238,6 +242,57 @@ export function validateConfig(config) {
     throw new ConfigError(`Invalid harness config:\n  - ${problems.join('\n  - ')}`);
   }
   return config;
+}
+
+/** Validate `config.tools` as null | string[] | { type: 'preset', preset: 'claude_code' }. */
+function validateTools(tools, problems) {
+  if (tools == null) return;
+  if (Array.isArray(tools)) {
+    if (tools.some((t) => typeof t !== 'string')) problems.push('tools must be an array of strings');
+    return;
+  }
+  if (!(isPlainObject(tools) && tools.type === 'preset' && tools.preset === 'claude_code')) {
+    problems.push("tools must be an array of tool names or { type: 'preset', preset: 'claude_code' }");
+  }
+}
+
+/**
+ * Validate `config.plugins` entries (a path string or `{ type: 'local', path }`).
+ * A missing directory is a config error rather than a plugin the runtime
+ * silently skips at load time.
+ */
+function validatePlugins(plugins, problems) {
+  if (plugins == null) return;
+  if (!Array.isArray(plugins)) { problems.push('plugins must be an array'); return; }
+  plugins.forEach((entry, i) => {
+    const p = typeof entry === 'string' ? entry : entry?.path;
+    if (!isPlainObject(entry) && typeof entry !== 'string') {
+      problems.push(`plugins[${i}] must be a path string or { type: 'local', path }`);
+      return;
+    }
+    if (isPlainObject(entry) && entry.type != null && entry.type !== 'local') {
+      problems.push(`plugins[${i}].type must be 'local' (got "${entry.type}")`);
+    }
+    if (typeof p !== 'string' || !p) {
+      problems.push(`plugins[${i}] requires a string path`);
+    } else if (!fs.existsSync(p) || !fs.statSync(p).isDirectory()) {
+      problems.push(`plugins[${i}] is not a directory: ${p}`);
+    }
+  });
+}
+
+/**
+ * Normalize `config.plugins` into the Agent SDK's `SdkPluginConfig[]`. Paths are
+ * resolved to absolute here: the runtime is a subprocess whose working
+ * directory (`cwd`) may differ from this process's, so a relative path would
+ * resolve against the wrong root.
+ */
+export function resolvePlugins(plugins) {
+  if (!Array.isArray(plugins)) return [];
+  return plugins.map((entry) => {
+    const { path: p, type: _type, ...rest } = typeof entry === 'string' ? { path: entry } : entry;
+    return { type: 'local', path: path.resolve(p), ...rest };
+  });
 }
 
 /** Validate `config.mcpServers` as Record<name, McpServerConfig> (stdio/http/sse). */
@@ -369,6 +424,7 @@ export function buildQueryOptions(config) {
   if (Array.isArray(config.disallowedTools) && config.disallowedTools.length) {
     options.disallowedTools = config.disallowedTools;
   }
+  if (config.tools != null) options.tools = config.tools;
   if (config.cwd != null) options.cwd = config.cwd;
   if (config.env != null) options.env = config.env;
   // baseURL → ANTHROPIC_BASE_URL in the subprocess env. The SDK replaces the
@@ -387,6 +443,8 @@ export function buildQueryOptions(config) {
   if (config.mcpServers && Object.keys(config.mcpServers).length) {
     options.mcpServers = config.mcpServers;
   }
+  const plugins = resolvePlugins(config.plugins);
+  if (plugins.length) options.plugins = plugins;
   const systemPrompt = resolveSystemPrompt(config);
   if (systemPrompt != null) options.systemPrompt = systemPrompt;
 

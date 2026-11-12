@@ -49,8 +49,8 @@ export const DEFAULT_SYSTEM_DIRS = ['/usr/local/bin', '/opt/homebrew/bin'];
 /**
  * Kinds tried first-match-wins by `findClaudeBinary`. A project-local
  * node_modules install pins a version, so it outranks whatever global binary
- * happens to be on the machine — flipped when `CLAUDE_AGENT_USE_CLI_LOGIN` is
- * set (see `resolveExecutablePath`).
+ * happens to be on the machine — flipped in CLI-login mode, which is on unless
+ * `CLAUDE_AGENT_USE_CLI_LOGIN=0` (see `resolveExecutablePath`).
  */
 export const DEFAULT_ORDER = ['node-module', 'native-binary'];
 
@@ -466,10 +466,19 @@ export function findClaudeBinary(opts = {}) {
 }
 
 /**
+ * CLI-login mode is the default: unset means on, and only `'0'` turns it off.
+ * It selects the installed CLI's stored login for auth and prefers the
+ * installed `claude` binary as the executable.
+ */
+export function cliLoginEnabled(env = process.env) {
+  return env.CLAUDE_AGENT_USE_CLI_LOGIN !== '0';
+}
+
+/**
  * Resolve the Claude Code executable the Agent SDK subprocess needs. Precedence:
  *   1. `config.pathToClaudeCodeExecutable` (validated as an existing file).
  *   2. `env.CLAUDE_AGENT_EXECUTABLE` (validated as an existing file).
- *   3. With `env.CLAUDE_AGENT_USE_CLI_LOGIN` set (and not '0'): the installed
+ *   3. In CLI-login mode (default; off with `CLAUDE_AGENT_USE_CLI_LOGIN=0`): the installed
  *      native `claude` binary first (`findNativeBinary()` — ~/.local/bin,
  *      ~/.claude/local, system dirs, PATH). The installed binary owns the CLI
  *      login session; spawning the SDK-bundled cli.js instead has been observed
@@ -506,7 +515,7 @@ export function resolveExecutablePath({ config = {}, env = process.env, fromDir,
     return path.resolve(env.CLAUDE_AGENT_EXECUTABLE);
   }
 
-  const useCliLogin = env.CLAUDE_AGENT_USE_CLI_LOGIN && env.CLAUDE_AGENT_USE_CLI_LOGIN !== '0';
+  const useCliLogin = cliLoginEnabled(env);
   if (useCliLogin) {
     const native = findNativeBinary({ env });
     if (native) return native.executable;
@@ -544,9 +553,10 @@ export function resolveExecutablePath({ config = {}, env = process.env, fromDir,
  *   CLAUDE_CODE_OAUTH_TOKEN → 'oauth-token'  (e.g. from `claude setup-token`)
  *   CLAUDE_CODE_USE_BEDROCK → 'bedrock'
  *   CLAUDE_CODE_USE_VERTEX → 'vertex'
- *   CLAUDE_AGENT_USE_CLI_LOGIN → 'cli-login' (the spawned CLI authenticates
- *     itself from its stored login; pair with the installed-binary preference
- *     in `resolveExecutablePath`)
+ *   otherwise → 'cli-login' (the spawned CLI authenticates itself from its
+ *     stored login; pairs with the installed-binary preference in
+ *     `resolveExecutablePath`). `CLAUDE_AGENT_USE_CLI_LOGIN=0` opts out, and
+ *     then no explicit credential means no auth.
  *
  * @param {NodeJS.ProcessEnv} [env]
  * @param {{ required?: boolean }} [opts] set required:false to probe without throwing
@@ -557,14 +567,12 @@ export function resolveAuth(env = process.env, { required = true } = {}) {
   if (env.CLAUDE_CODE_OAUTH_TOKEN) return { mode: 'oauth-token' };
   if (env.CLAUDE_CODE_USE_BEDROCK) return { mode: 'bedrock' };
   if (env.CLAUDE_CODE_USE_VERTEX) return { mode: 'vertex' };
-  if (env.CLAUDE_AGENT_USE_CLI_LOGIN && env.CLAUDE_AGENT_USE_CLI_LOGIN !== '0') {
-    return { mode: 'cli-login' };
-  }
+  if (cliLoginEnabled(env)) return { mode: 'cli-login' };
   if (required) {
     throw new Error(
       'No Claude auth found. Set ANTHROPIC_API_KEY, CLAUDE_CODE_OAUTH_TOKEN, '
-      + 'CLAUDE_CODE_USE_BEDROCK, CLAUDE_CODE_USE_VERTEX, or '
-      + 'CLAUDE_AGENT_USE_CLI_LOGIN=1 (use the installed CLI\'s stored login).',
+      + 'CLAUDE_CODE_USE_BEDROCK, or CLAUDE_CODE_USE_VERTEX, or remove '
+      + 'CLAUDE_AGENT_USE_CLI_LOGIN=0 to use the installed CLI\'s stored login.',
     );
   }
   return { mode: null };

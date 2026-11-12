@@ -85,7 +85,8 @@ finders — `findClaude()` (the closest installed `@anthropic-ai/claude-code`, t
 `@anthropic-ai/claude-agent-sdk`, each located by native module resolution and a manual
 `node_modules` walk) and `findNativeBinary()` (the installed `claude`: `~/.local/bin`,
 `~/.claude/local`, system dirs, PATH) — overridable via `pathToClaudeCodeExecutable` (config) or
-`CLAUDE_AGENT_EXECUTABLE` (env). `CLAUDE_AGENT_USE_CLI_LOGIN=1` flips the preference to the
+`CLAUDE_AGENT_EXECUTABLE` (env). CLI-login mode is the **default** (set
+`CLAUDE_AGENT_USE_CLI_LOGIN=0` to turn it off) and flips the preference to the
 installed binary, which owns the CLI login session — spawning the SDK-bundled `cli.js` instead has
 been observed to stall on startup in plain terminals (suspected, **unconfirmed** macOS Keychain
 prompt; see `claude-sdk-hang-troubleshooting.md` at the repo family root). The Copilot twin
@@ -103,6 +104,8 @@ Precedence: **defaults < config file < environment < overrides**. See
 | `maxTurns` | `10` | agentic turn ceiling |
 | `permissionMode` | `default` | `default\|acceptEdits\|plan\|bypassPermissions` |
 | `allowedTools` / `disallowedTools` | `[]` | tool allow/deny patterns (`mcp__github__*`, …) |
+| `tools` | `null` | built-in tool **availability** → `options.tools` (`['Read','Glob','Grep']` or the `claude_code` preset); `null` = SDK default |
+| `plugins` | `[]` | local plugin directories (path string or `{type:'local',path,skipMcpDiscovery?}`) → `options.plugins`; resolved to absolute paths, must exist |
 | `systemPrompt` | `null` | string, or `{type:'preset',preset,append}` (append mode) |
 | `systemPromptMode` | `append` | `append` (preset+append) or `replace` (raw string) |
 | `mcpServers` | `{}` | external MCP servers (stdio/http/sse) |
@@ -124,7 +127,7 @@ Precedence: **defaults < config file < environment < overrides**. See
 | `ANTHROPIC_API_KEY` | runtime auth (api-key) |
 | `CLAUDE_CODE_OAUTH_TOKEN` | runtime auth (oauth-token, e.g. from `claude setup-token`) |
 | `CLAUDE_CODE_USE_BEDROCK` / `CLAUDE_CODE_USE_VERTEX` | enterprise auth |
-| `CLAUDE_AGENT_USE_CLI_LOGIN` | runtime auth (cli-login) + prefer the installed `claude` binary |
+| `CLAUDE_AGENT_USE_CLI_LOGIN` | **default on**: runtime auth falls back to cli-login and the installed `claude` binary is preferred; `0` turns both off |
 | `CLAUDE_AGENT_MODEL` | `model` |
 | `CLAUDE_AGENT_EFFORT` | `effort` |
 | `CLAUDE_AGENT_PERMISSION_MODE` | `permissionMode` |
@@ -140,7 +143,10 @@ Precedence: **defaults < config file < environment < overrides**. See
 `session:resumed`, `session:replayed`, `run:start`, `run:end`, `event` (once per raw `SDKMessage`),
 `message`, `delta`, `preflight`, `budget:warn`, `budget:exceeded`, `tool:call`, `tool:result`,
 `tool:error`, `tool:denied`, `usage:tokens`, `structured:ok`, `structured:invalid`, `error:run`,
-`subagent:start`, `subagent:activity`.
+`subagent:start`, `subagent:activity`, `plugins:loaded` (`{ plugins, ambient, skills, errors }` from
+the runtime's init message — emitted when `plugins` is configured or the runtime reports plugins;
+`ambient` lists loaded plugins that were not configured, e.g. account plugins the installed `claude`
+binary adds in CLI-login mode).
 
 **Hooks** (awaited interception points): `beforeRun`, `afterRun`, `beforeToolCall` (return
 `{deny, reason}` to block), `afterToolCall`, `onToolFailure`, `onPromptSubmit`, `onSessionStart`,

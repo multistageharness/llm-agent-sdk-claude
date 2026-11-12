@@ -25,8 +25,10 @@
  */
 
 import { EventEmitter } from 'node:events';
+import fs from 'node:fs';
+import path from 'node:path';
 
-import { loadConfig, resolveSystemPrompt, buildQueryOptions } from './config.mjs';
+import { loadConfig, resolveSystemPrompt, buildQueryOptions, resolvePlugins } from './config.mjs';
 import { dispatchQuery, loadSdkTooling, fallbackTool, fallbackCreateSdkMcpServer, jsonSchemaToZodShape } from './runtime.mjs';
 import { TokenBudget, analyzeRun } from './tokens.mjs';
 import { UsageTracker } from './usage.mjs';
@@ -41,6 +43,15 @@ import {
   buildStrictOutputDirective,
   parseStructuredResponse,
 } from './structured.mjs';
+
+/** Canonical path for comparison (symlinks resolved when the path exists). */
+function realPath(p) {
+  try {
+    return fs.realpathSync(p);
+  } catch {
+    return path.resolve(p);
+  }
+}
 
 /**
  * Format one Server-Sent-Events frame from a `stream()` item. The event name is
@@ -777,6 +788,21 @@ export class ClaudeAgentHarness extends EventEmitter {
     if (msg.type === 'system' && msg.subtype === 'init') {
       this._captureSession(msg.session_id);
       state.mcpServers = msg.mcp_servers ?? [];
+      // Plugin load report: lets callers see which plugins/skills the runtime
+      // actually picked up (a malformed plugin is otherwise silently skipped).
+      // `ambient` lists loaded plugins that were not configured: the installed
+      // `claude` binary (CLI-login mode) also loads the account's built-in and
+      // synced plugins, which `settingSources: []` does not switch off.
+      if (this.config.plugins?.length || Array.isArray(msg.plugins)) {
+        const plugins = msg.plugins ?? [];
+        const configured = new Set(resolvePlugins(this.config.plugins).map((p) => realPath(p.path)));
+        this.emit('plugins:loaded', {
+          plugins,
+          ambient: plugins.filter((p) => !configured.has(realPath(p.path ?? ''))),
+          skills: msg.skills ?? [],
+          errors: msg.plugin_errors ?? [],
+        });
+      }
       return;
     }
 

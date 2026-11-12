@@ -11,7 +11,7 @@ node examples/01-chat.mjs "What is 2+2?"
 ```
 
 Two more auth routes: `CLAUDE_CODE_OAUTH_TOKEN` (e.g. from `claude setup-token`), and
-`CLAUDE_AGENT_USE_CLI_LOGIN=1` — use the installed CLI's stored login, which also makes the
+CLI login, which is the **default** (opt out with `CLAUDE_AGENT_USE_CLI_LOGIN=0`): the installed CLI's stored login, which also makes the
 harness prefer the installed `claude` binary over the SDK-bundled `cli.js` (useful when a
 terminal run stalls on startup; see `claude-sdk-hang-troubleshooting.md` at the repo family root).
 
@@ -72,6 +72,7 @@ is sent to the model.
 | 23 | `23-repl-chatbot` | interactive REPL chatbot |
 | 24 | `24-enterprise-proxy` | Bedrock / Vertex / `--base-url` enterprise setup |
 | 25 | `25-policy-gated-investigator` | Policy-gated investigation: bare-name tool veto (once per `toolUseId`), handler-side PII redaction, schema-validated + citation-verified report — C1, C2, E3, B1, B2, B3, E4 |
+| 26 | `26-plugins` | local directory plugin (`plugins: ['./plugins/repo-auditor']`) + read-only built-ins (`tools`) + `plugins:loaded` diagnostics — C6 *(demo-grade — live runtime)* |
 
-Examples 13, 14, and 22 require a live, authenticated runtime and are labeled demo-grade in their
+Examples 13, 14, 22, and 26 require a live, authenticated runtime and are labeled demo-grade in their
 headers.

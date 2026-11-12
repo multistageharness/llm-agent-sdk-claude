@@ -4,6 +4,7 @@
   "permissionMode": "default",
   "allowedTools": [],
   "disallowedTools": [],
+  "tools": null,
   "maxTurns": 10,
 
   "systemPrompt": null,
@@ -12,6 +13,8 @@
   "systemPromptPreset": "claude_code",
 
   "settingSources": [],
+
+  "plugins": [],
 
   "mcpServers": {
     "fs": { "command": "my-mcp", "args": ["--stdio"] },

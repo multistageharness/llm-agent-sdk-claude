@@ -44,12 +44,13 @@ The same capability can sit at a different tier in each sibling. Where a cell is
 | Chat, stream, SSE (A1–A3 / P-10–P-21) | `[HARNESS]` | `[HARNESS]` | `[HARNESS]` |
 | Prompt + repair structured output, RAG, judge, batch (B1–B4 / P-34–P-37) | `[HARNESS]` | `[HARNESS]` | `[HARNESS]` |
 | API-native JSON Schema output (`outputFormat`) | `[HARNESS]` (`structured.native: true` → `output_config.format`) | `[PASSTHROUGH]` (`requestDefaults: { outputFormat }`; `structured.native` only appends a directive) | unsupported (local validator + repair) |
-| Built-in workspace tools (C0 / P-33) | unsupported (no local runtime) | `[HARNESS]` (`allowedTools`/`disallowedTools`) · `[PASSTHROUGH]` (`requestDefaults: { tools }`) | `[PASSTHROUGH]` (`cliArgs: []` + `sessionDefaults`) |
+| Built-in workspace tools (C0 / P-33) | unsupported (no local runtime) | `[HARNESS]` (`allowedTools`/`disallowedTools`/`tools`) | `[HARNESS]` (`availableTools`/`excludedTools`) |
 | Custom tools, policy veto, HITL, stream + tools (C1–C3 / P-30–P-32, P-22) | `[HARNESS]` | `[HARNESS]` | `[HARNESS]` |
 | Policy-gated investigator (C5-B1 / P-25) | `[HARNESS]` | `[HARNESS]` | `[HARNESS]` |
-| External MCP servers (C4 / P-33) | `[PASSTHROUGH]` (`betas` + `requestDefaults.mcp_servers`; invisible to hooks) | `[HARNESS]` (`mcpServers` + `autoAllowMcp`; visible to hooks) | `[PASSTHROUGH]` (`cliArgs: []` + `sessionDefaults`) |
+| External MCP servers (C4 / P-33) | `[PASSTHROUGH]` (`betas` + `requestDefaults.mcp_servers`; invisible to hooks) | `[HARNESS]` (`mcpServers` + `autoAllowMcp`; visible to hooks) | `[HARNESS]` (`mcpServers`; visible to hooks) |
 | Subagents (C4) | unsupported (multi-harness app code) | `[HARNESS]` (`agents` + `subagent:*` events) | `[PASSTHROUGH]` / `[SDK-NATIVE]` (custom agents via `sessionDefaults`; Fleet via RPC) |
-| Skills / plugins from disk | unsupported | `[PASSTHROUGH]` (`settingSources`) | `[PASSTHROUGH]` (`sessionDefaults`) |
+| Local directory plugins (C6) | unsupported | `[HARNESS]` (`plugins` → `options.plugins`) | `[HARNESS]` (`pluginDirectories`, `skillDirectories`, `disabledSkills`) |
+| Ambient skills / plugins / CLAUDE.md from disk | unsupported | `[PASSTHROUGH]` (`settingSources`) | `[PASSTHROUGH]` (`sessionDefaults`) |
 | Tool-input rewriting via hook | unsupported (redact in handler) | `[PASSTHROUGH]` (`nativeHooks.PreToolUse` → `updatedInput`) | unsupported (redact in handler) |
 | Exact token counting (`countTokens`) | `[HARNESS]` (`analyzeRunAccurate()`) | unsupported (heuristic) | unsupported (heuristic) |
 
@@ -99,7 +100,8 @@ subprocess, and the harness *bridges* to them.
 | Permissions | `permissionMode`, `permissions.deny`, `beforeToolCall` → `canUseTool` + `PreToolUse` | See C2 and caveats 6–8. |
 | Hooks | harness hooks bridged to native `options.hooks`; raw matchers through `nativeHooks` | `PreToolUse`, `PostToolUse`, `UserPromptSubmit`, `SessionStart`, `SessionEnd`, `Stop`. |
 | Structured output (`outputFormat` / `structured_output`) | `harness.structured()` (prompt + validate + repair, or a directive with `structured.native`) | **Not** the SDK's native `outputFormat`. That is only reachable through `requestDefaults` (§5). |
-| Skills / plugins | `settingSources` (default `[]` = load nothing from disk) | Not wrapped. Opting in loads CLAUDE.md, skills, and settings from disk (§5). |
+| Plugins (`options.plugins`) | config `plugins` (path or `{ type: 'local', path }`) | Resolved to absolute paths and checked to exist in `validateConfig()`. Event: `plugins:loaded`. See C6. |
+| Ambient skills / settings | `settingSources` (default `[]` = load nothing from disk) | Not wrapped. Opting in loads CLAUDE.md, skills, and settings from disk (§5). |
 | Token counting | `harness.preflight()` (heuristic) | `analyzeRunAccurate()` is **heuristic-only** here. The Agent SDK has no `countTokens`. |
 | V2 session API (`unstable_v2_*`, `session.send/stream`) | **Not used** | The harness uses only `query()` plus `options.resume`, which is the documented path that remains after V2 was removed. |
 
@@ -282,7 +284,7 @@ Each pattern lists its **intent**, **recipe**, **composes with**, **does not com
 
 ### C. Tools
 
-#### C0 · Built-in tools (agentic file/shell/web work) **[HARNESS] · `tools` restriction [PASSTHROUGH]**
+#### C0 · Built-in tools (agentic file/shell/web work) **[HARNESS]**
 - **Intent:** let the agent investigate or change a workspace: read and search a repo, run
   tests, edit files, or search the web.
 - **Recipe:**
@@ -291,6 +293,8 @@ Each pattern lists its **intent**, **recipe**, **composes with**, **does not com
     cwd: '/path/to/repo',
     allowedTools: ['Read', 'Glob', 'Grep'],        // pre-approved (no permission prompt)
     disallowedTools: ['Bash', 'Write', 'Edit'],    // hard-removed
+    // or restrict availability outright (Pattern A, least privilege):
+    // tools: ['Read', 'Glob', 'Grep'],             // only these built-ins exist
     permissionMode: 'default',                     // or 'plan' (read-only), 'acceptEdits'
     maxTurns: 20,
   }});
@@ -387,6 +391,36 @@ Each pattern lists its **intent**, **recipe**, **composes with**, **does not com
 - **Portability:** the example file is byte-identical in all three packages and runs under any
   `HARNESS_MODULE` target.
 - **Examples:** 25.
+
+#### C6 · Local directory plugins (+ built-in scoping) **[HARNESS]**
+- **Intent:** ship skills, subagents, hooks, and bundled MCP servers inside the application repo
+  and inject them per session, without touching the host's user-level Claude config.
+- **Recipe:**
+  ```js
+  config: {
+    plugins: ['./plugins/repo-auditor'],          // or { type: 'local', path, skipMcpDiscovery: true }
+    tools: ['Read', 'Glob', 'Grep', 'Skill'],      // Pattern A: no Bash/Write/Edit at all
+  }
+  harness.on('plugins:loaded', ({ plugins, skills, errors }) => …);
+  ```
+- **Layout:** `<plugin>/.claude-plugin/plugin.json`, `skills/<name>/SKILL.md`, `agents/<name>.md`,
+  optional `.mcp.json`. See `examples/plugins/repo-auditor`.
+- **Guarantees:** paths are resolved to absolute before reaching the subprocess, so a different
+  `cwd` does not break discovery; a missing directory or a non-`local` type is a `ConfigError`, not
+  a silent skip. `settingSources` stays `[]`, so plugins enabled in user/project settings files do
+  not load alongside.
+- **Not isolated in CLI-login mode (the default):** the installed `claude` binary also loads the
+  logged-in account's built-in and synced plugins and skills, and neither `settingSources: []` nor
+  `--safe-mode` switches them off (`--safe-mode` drops the configured plugin and MCP servers
+  instead). The SDK-bundled `cli.js` loads only the configured plugins, even with the same login.
+  For a strictly isolated set, set `CLAUDE_AGENT_USE_CLI_LOGIN=0` with an API key, or pin
+  `CLAUDE_AGENT_EXECUTABLE` to the bundled `cli.js`.
+- **Diagnostics:** `plugins:loaded` carries the init message's `plugins`, `skills`, and
+  `plugin_errors` (a malformed `SKILL.md` or manifest shows up there, not as an exception), plus
+  `ambient`: loaded plugins whose path is not in `config.plugins`.
+- **Version:** `options.plugins` and `options.tools` need an SDK release that has them; see the
+  §5 version check.
+- **Examples:** 26 *(demo-grade)*.
 
 ### D. Context & sessions
 
@@ -568,7 +602,6 @@ Each one bypasses part of the harness, so account for that.
 | Need | Tag | Mechanism | What it bypasses |
 |---|---|---|---|
 | Native structured output (`outputFormat: { type:'json_schema', schema }`) | `[PASSTHROUGH]` | A dedicated harness with `requestDefaults: { outputFormat }`. Read `(await h.chat(p)).result.structured_output`. | Nothing in the harness, but it applies to **every** call on that harness. A validation failure surfaces as a non-`success` subtype, which `chat()` throws. |
-| Restrict which built-ins exist (`tools`) | `[PASSTHROUGH]` | `requestDefaults: { tools: ['Read','Glob','Grep'] }` | — |
 | Skills / plugins / CLAUDE.md | `[PASSTHROUGH]` | `settingSources: ['project']` (or `'user'`, `'local'`) | Reproducibility: behavior then depends on files on disk. |
 | Raw native hooks (`updatedInput`, other events) | `[PASSTHROUGH]` | `nativeHooks: { PreToolUse: [{ matcher, hooks: [fn] }] }` | Harness hook semantics (these are not awaited through `HookManager`). |
 | Raw SDKMessage stream (init, tool_use blocks, compaction, …) | `[HARNESS]` (observe only) | `harness.on('event', msg => …)` | — (observe only) |
@@ -754,6 +787,7 @@ each names the fix and its regression test (`test/caveat-fixes.test.mjs`,
 | 23 | [`23-repl-chatbot.mjs`](examples/23-repl-chatbot.mjs) | D2, D4 | |
 | 24 | [`24-enterprise-proxy.mjs`](examples/24-enterprise-proxy.mjs) | F4 | |
 | 25 | [`25-policy-gated-investigator.mjs`](examples/25-policy-gated-investigator.mjs) | C1, C2, E3, B1, B2, B3, E4 (C5-B1) | identical in all 3 packages |
+| 26 | [`26-plugins.mjs`](examples/26-plugins.mjs) | C6, C0 | demo-grade |
 
 ### Choosing a pattern
 
